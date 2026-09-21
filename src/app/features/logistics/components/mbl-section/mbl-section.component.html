@@ -1,0 +1,52 @@
+<div class="mt-12 pt-8 border-t">
+      <h2 class="mbl-title">Master Bill of Lading</h2>
+      <p class="mbl-subtitle">This MBL includes every HBL created from the uploaded packing-list batch. Confirm the carrier booking, MBL-level parties, and VGM before generation.</p>
+
+      <div *ngIf="mblReview.mbl_pdf" class="card">
+        <p class="success-text">Final MBL generated from {{ mblReview.draft_ids.length }} HBL(s).</p>
+        <p class="info-text">Final MBL number: <code class="code-block">{{ mblReview.mbl_number }}</code></p>
+        <p class="info-text-large">Included HBLs: {{ getIncludedHblNumbers() }}</p>
+
+        <div class="doc-box">
+          <span class="doc-title">📄 {{ mblReview.mbl_filename }}</span>
+          <button class="btn-secondary" (click)="viewMbl = true">👁️ View Full MBL</button>
+        </div>
+      </div>
+
+      <div *ngIf="!mblReview.mbl_pdf" class="card">
+        <p class="info-text-large" style="font-weight: 500;">Included HBLs: {{ getIncludedHblNumbers() }}</p>
+
+        <form #mblForm="ngForm" (ngSubmit)="saveDetails(mblForm)" [class.form-submitted]="mblForm.submitted">
+          <h4 class="form-section-title">MBL Shipper and Consignee</h4>
+          <div class="grid grid-cols-2 gap-8 mb-8">
+             <div>
+                <label class="form-label">Shipper Name *</label>
+                <input type="text" [(ngModel)]="mblReview.mbl_details.shipper.name" name="shipperName" required #shipperName="ngModel" 
+                  class="form-input" [class.is-invalid]="shipperName.invalid">
+                <div class="error-text">Shipper Name is required</div>
+             </div>
+             <div>
+                <label class="form-label">Consignee Name *</label>
+                <input type="text" [(ngModel)]="mblReview.mbl_details.consignee.name" name="consigneeName" required #consigneeName="ngModel" 
+                  class="form-input" [class.is-invalid]="consigneeName.invalid">
+                <div class="error-text">Consignee Name is required</div>
+             </div>
+          </div>
+
+          <button type="submit" class="btn-primary">Generate Final MBL PDF</button>
+
+          <div *ngIf="mblForm.submitted && mblForm.invalid" class="alert-error mt-4">
+            Please complete all required MBL fields.
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <app-document-modal 
+      *ngIf="mblReview.mbl_pdf"
+      [isOpen]="viewMbl" 
+      [title]="mblReview.mbl_filename || 'MBL PDF'" 
+      [documentUrl]="mblReview.mbl_pdf" 
+      mimeType="application/pdf"
+      (closed)="viewMbl = false">
+    </app-document-modal>

@@ -1,0 +1,6 @@
+.tab-subtitle {
+      font-size: 14px; color: #64748b; margin-bottom: 16px;
+    }
+    .doc-box {
+      border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: space-between; background: #fff;
+    }

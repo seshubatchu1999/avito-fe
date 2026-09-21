@@ -1,0 +1,22 @@
+<div *ngIf="isOpen" class="modal-overlay" (click)="close()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="modal-header">
+          <h3 class="modal-title">{{ title }}</h3>
+          <button (click)="close()" class="modal-close-btn">
+            <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <!-- Body -->
+        <div class="modal-body">
+          <ng-container *ngIf="mimeType === 'application/pdf'; else imageTpl">
+            <object [data]="safeUrl" type="application/pdf" class="doc-object">
+              <p>It appears you don't have a PDF plugin for this browser. <a [href]="safeUrl">Click here to download the PDF file.</a></p>
+            </object>
+          </ng-container>
+          <ng-template #imageTpl>
+            <img [src]="safeUrl" class="doc-img" alt="Document Preview"/>
+          </ng-template>
+        </div>
+      </div>
+    </div>

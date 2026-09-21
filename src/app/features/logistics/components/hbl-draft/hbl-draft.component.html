@@ -1,0 +1,152 @@
+<div class="card mb-6" style="padding: 0; overflow: hidden;">
+      <!-- Accordion Header -->
+      <div 
+        class="accordion-header"
+        (click)="expanded = !expanded"
+      >
+        <div>
+          Merged HBL Draft ({{ drafts.length }} Packing List{{ drafts.length > 1 ? 's' : '' }}) &nbsp;|&nbsp; 
+          <span [style.color]="detailsConfirmed ? '#15803d' : '#f97316'">
+            {{ detailsConfirmed ? 'Ready' : 'Draft' }}
+          </span>
+          &nbsp;|&nbsp; HBL: {{ primaryDraft?.hbl_number || 'Pending' }}
+        </div>
+        <svg style="width: 20px; height: 20px; transition: transform 0.2s;" [class.rotate-180]="expanded" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </div>
+
+      <!-- Accordion Body -->
+      <div *ngIf="expanded" class="accordion-body">
+        <!-- Tabs -->
+        <div class="tabs-container">
+          <button *ngFor="let tab of tabs; let i = index" 
+                  (click)="activeTab = i"
+                  class="tab-btn"
+                  [class.active]="activeTab === i">
+            {{ tab }}
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        
+        <!-- Packing List Tab -->
+        <div *ngIf="activeTab === 0">
+          <p class="tab-subtitle">Original uploaded packing list(s)</p>
+          <div *ngFor="let d of drafts" class="doc-box mb-4">
+            <span style="font-weight: 500;">📄 {{ d.source_name }}</span>
+            <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Document</button>
+          </div>
+        </div>
+
+        <!-- HBL Details Tab -->
+        <div *ngIf="activeTab === 1">
+          <div *ngIf="isLocked" class="alert-success mb-6">
+            Final HBL generated. Saved HBL details are locked.
+          </div>
+          <p *ngIf="!isLocked" class="tab-subtitle">Confirm the information received from shipping instructions.</p>
+          
+          <form #hblForm="ngForm" (ngSubmit)="saveDetails(hblForm)" [class.form-submitted]="hblForm.submitted">
+            <div class="grid grid-cols-2 gap-8">
+              <!-- Notify Party -->
+              <div>
+                <h4 class="mb-4 pb-2 border-b">Notify Party</h4>
+                
+                <div class="mb-4">
+                  <label class="form-label">Name *</label>
+                  <input type="text" name="notifyName" [(ngModel)]="formData.notify_party.name" required #notifyName="ngModel"
+                    class="form-input" [class.is-invalid]="notifyName.invalid" [disabled]="isLocked">
+                  <div class="error-text">Name is required</div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Tax / Registration ID</label>
+                  <input type="text" name="notifyTax" [(ngModel)]="formData.notify_party.tax_id" class="form-input" [disabled]="isLocked">
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Address *</label>
+                  <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="3" 
+                    class="form-input" [class.is-invalid]="notifyAddress.invalid" [disabled]="isLocked"></textarea>
+                  <div class="error-text">Address is required</div>
+                </div>
+              </div>
+
+              <!-- Shipment Details -->
+              <div>
+                <h4 class="mb-4 pb-2 border-b">Shipment Details</h4>
+                
+                <div class="mb-4">
+                  <label class="form-label">HBL Number *</label>
+                  <input type="text" name="hblNumber" [(ngModel)]="formData.hbl_number" required #hblNumber="ngModel"
+                    class="form-input" [class.is-invalid]="hblNumber.invalid" [disabled]="isLocked">
+                  <div class="error-text">HBL Number is required</div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Container Number *</label>
+                  <input type="text" name="containerNumber" [(ngModel)]="formData.container_number" required #containerNumber="ngModel"
+                    class="form-input" [class.is-invalid]="containerNumber.invalid" [disabled]="isLocked">
+                  <div class="error-text">Container Number is required</div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Seal Number *</label>
+                  <input type="text" name="sealNumber" [(ngModel)]="formData.seal_number" required #sealNumber="ngModel"
+                    class="form-input" [class.is-invalid]="sealNumber.invalid" [disabled]="isLocked">
+                  <div class="error-text">Seal Number is required</div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Freight Terms *</label>
+                  <select name="freightTerms" [(ngModel)]="formData.freight_terms" required #freightTerms="ngModel"
+                    class="form-input" [class.is-invalid]="freightTerms.invalid" [disabled]="isLocked">
+                    <option value="" disabled>Select</option>
+                    <option value="Prepaid">Prepaid</option>
+                    <option value="Collect">Collect</option>
+                  </select>
+                  <div class="error-text">Freight Terms is required</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 flex gap-4" *ngIf="!isLocked">
+              <button type="submit" class="btn-primary">Save HBL Details</button>
+            </div>
+            
+            <div *ngIf="hblForm.submitted && hblForm.invalid && !detailsConfirmed" class="alert-error mt-4">
+              Please complete all required fields.
+            </div>
+            <div *ngIf="detailsConfirmed && !isLocked" class="alert-success mt-4">
+              Required HBL details saved. This draft is ready for final generation.
+            </div>
+          </form>
+        </div>
+
+        <!-- HBL Preview Tab -->
+        <div *ngIf="activeTab === 2">
+          <div *ngIf="!isLocked">
+            <div class="alert-info mb-6">
+              Complete and save the required HBL details before generating the final PDF.
+            </div>
+            <button class="btn-primary" [disabled]="!detailsConfirmed" (click)="generateHbl()">Generate Final HBL PDF</button>
+          </div>
+          <div *ngIf="isLocked">
+            <p class="tab-subtitle">Final HBL number: <code style="background: #f1f5f9; padding: 2px 4px; border-radius: 4px;">{{ primaryDraft?.hbl_number }}</code></p>
+            <div *ngFor="let d of drafts">
+              <div *ngIf="d.hbl_pdf" class="doc-box mb-4">
+                <span style="font-weight: 500;">📄 {{ d.hbl_filename }}</span>
+                <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Full HBL</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <app-document-modal 
+      *ngIf="selectedDocUrl"
+      [isOpen]="true" 
+      [title]="selectedDocName" 
+      [documentUrl]="selectedDocUrl" 
+      [mimeType]="selectedDocMime"
+      (closed)="closeDoc()">
+    </app-document-modal>

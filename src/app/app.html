@@ -1,0 +1,59 @@
+<app-toast></app-toast>
+<div class="app-wrapper">
+  <!-- Header -->
+  <header class="header">
+    <div class="container" style="display: flex; align-items: center; gap: 24px; justify-content: center;">
+      <img src="avito.png" alt="Avito Logo" class="header-logo" />
+      <div>
+        <h1 class="header-title">
+          <!-- <span class="header-icon">📄</span> -->
+          Packing Lists to Bills of Lading
+        </h1>
+        <p class="header-subtitle">Create HBLs from packing lists, then consolidate completed HBLs into a carrier MBL.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-layout">
+    <div class="left-panel" [class.full-width]="hblReviews.length === 0">
+      <app-uploader #uploader (filesSelected)="processFiles($event)"></app-uploader>
+    </div>
+
+    <div class="right-panel" *ngIf="hblReviews.length > 0">
+      <div class="review-select-box" style="padding: 16px; margin-bottom: 16px; flex-direction: column; align-items: stretch; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label class="form-label" style="font-size: 14px; margin: 0;">Review Draft (Multi-select):</label>
+          <button class="btn-outline clear-results-btn" style="padding: 8px 16px;" (click)="clearResults()">Clear All</button>
+        </div>
+        
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button *ngFor="let review of hblReviews; let i = index"
+                  class="pill-btn"
+                  [class.selected]="isDraftSelected(i)"
+                  (click)="toggleSelection(i)">
+            {{ i + 1 }}. {{ review.source_name }} ({{ review.details_confirmed ? 'Ready' : 'Draft' }})
+          </button>
+        </div>
+      </div>
+
+      <div class="review-content">
+        <app-hbl-draft 
+          *ngIf="selectedDraftIndices.size > 0 && !mblReview"
+          [drafts]="getSelectedDrafts()"
+          [expanded]="true"
+          (generateRequested)="generateHbl($event)"
+        ></app-hbl-draft>
+
+        <app-mbl-section 
+          *ngIf="canShowMbl() && mblReview"
+          [reviews]="hblReviews"
+          [mblReview]="mblReview"
+          (generateRequested)="generateMbl()"
+        ></app-mbl-section>
+      </div>
+    </div>
+  </main>
+
+  <app-wifi-loader [show]="isExtracting" text="extracting"></app-wifi-loader>
+  <app-wifi-loader [show]="isGenerating" text="generating"></app-wifi-loader>
+</div>

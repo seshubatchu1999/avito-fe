@@ -1,0 +1,12 @@
+<div class="toast-container">
+      <div *ngFor="let toast of toastService.toasts()" class="toast-item" [ngClass]="toast.type">
+        <div class="toast-content">
+          <svg *ngIf="toast.type === 'success'" style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <svg *ngIf="toast.type === 'error'" style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          <span>{{ toast.message }}</span>
+        </div>
+        <button class="toast-close" (click)="close(toast.id)">
+          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>

@@ -1,0 +1,87 @@
+.header-logo {
+  height: 48px;
+  object-fit: contain;
+}
+.header-subtitle { margin-top: 4px; font-size: 14px; }
+.review-select-box {
+  margin-bottom: 24px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.clear-results-btn {
+  color: #ef4444;
+  border-color: #fca5a5;
+  align-self: flex-end;
+}
+.clear-results-btn:hover {
+  background-color: #fef2f2;
+}
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-layout {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 24px;
+}
+
+.left-panel {
+  flex: 0 0 380px;
+  overflow-y: auto;
+  padding-right: 12px;
+  transition: all 0.3s;
+}
+
+.left-panel.full-width {
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.review-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.pill-btn {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 9999px; /* full rounded */
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pill-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.pill-btn.selected {
+  background-color: #16a34a; /* Green */
+  border-color: #15803d;
+  color: #ffffff;
+}
+
