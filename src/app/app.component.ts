@@ -47,8 +47,8 @@ export class AppComponent {
     
     import('rxjs').then(({ forkJoin }) => {
       const requests = newFiles.map(file => this.extractionService.extractPackingList(file));
-      
       forkJoin(requests).subscribe(results => {
+      
         this.selectedDraftIndices = new Set([0]);
         results.forEach((packingList, index) => {
           const file = newFiles[index]; // Use newFiles instead of files!

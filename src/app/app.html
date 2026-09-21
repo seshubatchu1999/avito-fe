@@ -38,18 +38,19 @@
 
       <div class="review-content">
         <app-hbl-draft 
-          *ngIf="selectedDraftIndices.size > 0 && !mblReview"
+          *ngIf="selectedDraftIndices.size > 0"
           [drafts]="getSelectedDrafts()"
           [expanded]="true"
+          [hasMbl]="!!mblReview"
           (generateRequested)="generateHbl($event)"
-        ></app-hbl-draft>
-
-        <app-mbl-section 
-          *ngIf="canShowMbl() && mblReview"
-          [reviews]="hblReviews"
-          [mblReview]="mblReview"
-          (generateRequested)="generateMbl()"
-        ></app-mbl-section>
+        >
+          <app-mbl-section 
+            *ngIf="canShowMbl() && mblReview"
+            [reviews]="hblReviews"
+            [mblReview]="mblReview"
+            (generateRequested)="generateMbl()"
+          ></app-mbl-section>
+        </app-hbl-draft>
       </div>
     </div>
   </main>
