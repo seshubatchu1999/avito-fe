@@ -8,6 +8,7 @@ import { MblSectionComponent } from './features/logistics/components/mbl-section
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { ToastService } from './core/services/toast.service';
 import { DocumentExtractionService } from './core/services/document-extraction.service';
+import { BackendApiService } from './core/services/backend-api.service';
 import { ReviewDraft, MblReview, PackingList } from './core/models/schemas';
 
 @Component({
@@ -26,9 +27,15 @@ export class AppComponent {
   hblReviews: ReviewDraft[] = [];
   mblReview: MblReview | null = null;
   selectedDraftIndices = new Set<number>([0]);
+  groupedSelectedDrafts: { color: string | null, drafts: ReviewDraft[] }[] = [];
+  
+  // Group coloring
+  groupColors: { [key: string]: string } = {};
+  availableColors = ['#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899']; // Red, Blue, Amber, Violet, Emerald, Pink
 
   constructor(
     private extractionService: DocumentExtractionService, 
+    private backendService: BackendApiService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService
   ) {}
@@ -45,18 +52,29 @@ export class AppComponent {
     this.isExtracting = true;
     this.cdr.detectChanges();
     
-    import('rxjs').then(({ forkJoin }) => {
-      const requests = newFiles.map(file => this.extractionService.extractPackingList(file));
+    this.backendService.uploadFiles(newFiles).subscribe((response: any) => {
       
-      forkJoin(requests).subscribe(results => {
-        this.selectedDraftIndices = new Set([0]);
-        results.forEach((packingList, index) => {
-          const file = newFiles[index]; // Use newFiles instead of files!
+      Object.keys(response).forEach(groupId => {
+        const groupItems = response[groupId];
+        if (groupItems.length > 1) {
+          // Assign a color if not already assigned
+          if (!this.groupColors[groupId]) {
+             const colorIndex = Object.keys(this.groupColors).length % this.availableColors.length;
+             this.groupColors[groupId] = this.availableColors[colorIndex];
+          }
+        }
+        
+        groupItems.forEach((item: any) => {
+          const file = newFiles.find(f => f.name === item.file_name);
+          if (!file) return;
+
+          const packingList = item.packing_list;
           const newDraft: ReviewDraft = {
             draft_id: Math.random().toString(36).substring(7),
             source_name: file.name,
-            source_document: URL.createObjectURL(file), // Generate a blob URL for preview
+            source_document: URL.createObjectURL(file),
             mime_type: file.type || 'application/pdf',
+            group_id: groupId,
             packing_list: packingList,
             details_confirmed: false,
             hbl_details: {
@@ -69,11 +87,33 @@ export class AppComponent {
           };
           this.hblReviews.push(newDraft);
         });
-        
-        this.isExtracting = false;
-        this.toast.show(`Successfully extracted ${results.length} packing list(s)`, 'success');
-        this.cdr.detectChanges();
       });
+      
+      const numGroupsFound = Object.keys(this.groupColors).length;
+      if (numGroupsFound > 0) {
+        this.toast.show(`${numGroupsFound} group(s) found`, 'info');
+      } else {
+        this.toast.show(`Successfully extracted ${newFiles.length} packing list(s)`, 'success');
+      }
+
+      // Default selection logic
+      this.selectedDraftIndices = new Set();
+      if (numGroupsFound > 0) {
+          const firstGroupId = Object.keys(this.groupColors)[0];
+          this.hblReviews.forEach((r, i) => {
+              if (r.group_id === firstGroupId) {
+                  this.selectedDraftIndices.add(i);
+              }
+          });
+      } else {
+          if (this.hblReviews.length > 0) {
+              this.selectedDraftIndices.add(0);
+          }
+      }
+
+      this.updateGroupedDrafts();
+      this.isExtracting = false;
+      this.cdr.detectChanges();
     });
   }
 
@@ -158,9 +198,19 @@ export class AppComponent {
     this.hblReviews = [];
     this.mblReview = null;
     this.selectedDraftIndices = new Set<number>([0]);
+    this.groupColors = {};
     if (this.uploaderComponent) {
       this.uploaderComponent.clearAll();
     }
+    this.updateGroupedDrafts();
+    this.cdr.detectChanges();
+  }
+
+  clearSuggestions() {
+    this.groupColors = {};
+    this.selectedDraftIndices = new Set();
+    this.toast.show('Suggestion groups cleared', 'info');
+    this.updateGroupedDrafts();
     this.cdr.detectChanges();
   }
 
@@ -170,9 +220,66 @@ export class AppComponent {
     } else {
       this.selectedDraftIndices.add(index);
     }
+    this.updateGroupedDrafts();
   }
 
   isDraftSelected(index: number): boolean {
     return this.selectedDraftIndices.has(index);
+  }
+
+  getGroupStyle(review: ReviewDraft, index: number): { [key: string]: string } | null {
+    const style: { [key: string]: string } = {};
+    const groupId = review.group_id;
+    const gColor = (groupId && this.groupColors[groupId]) ? this.groupColors[groupId] : null;
+
+    if (this.isDraftSelected(index)) {
+      // Use group color if grouped, else use a default dark gray
+      const activeColor = gColor ? gColor : '#475569';
+      style['background-color'] = activeColor;
+      style['border-color'] = activeColor;
+      style['color'] = '#ffffff';
+    } else {
+      if (gColor) {
+        style['border-top'] = `4px solid ${gColor}`;
+      }
+    }
+    
+    return Object.keys(style).length > 0 ? style : null;
+  }
+
+  hasGroupColors(): boolean {
+    return Object.keys(this.groupColors).length > 0;
+  }
+
+  updateGroupedDrafts() {
+    const selected = this.getSelectedDrafts();
+    if (selected.length === 0) {
+      this.groupedSelectedDrafts = [];
+      return;
+    }
+
+    const groupsMap = new Map<string, ReviewDraft[]>();
+    const singles: ReviewDraft[][] = [];
+
+    selected.forEach(draft => {
+       if (draft.group_id && this.groupColors[draft.group_id]) {
+           if (!groupsMap.has(draft.group_id)) {
+               groupsMap.set(draft.group_id, []);
+           }
+           groupsMap.get(draft.group_id)!.push(draft);
+       } else {
+           singles.push([draft]);
+       }
+    });
+
+    const result: { color: string | null, drafts: ReviewDraft[] }[] = [];
+    groupsMap.forEach((drafts, groupId) => {
+       result.push({ color: this.groupColors[groupId], drafts });
+    });
+    singles.forEach(drafts => {
+       result.push({ color: null, drafts });
+    });
+
+    this.groupedSelectedDrafts = result;
   }
 }

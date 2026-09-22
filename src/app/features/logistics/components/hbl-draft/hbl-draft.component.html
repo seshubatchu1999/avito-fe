@@ -1,4 +1,4 @@
-<div class="card mb-6" style="padding: 0; overflow: hidden;">
+<div class="card mb-6" style="padding: 0; overflow: hidden;" [style.border-top]="groupColor ? '4px solid ' + groupColor : '1px solid #e2e8f0'">
       <!-- Accordion Header -->
       <div 
         class="accordion-header"
@@ -16,29 +16,22 @@
 
       <!-- Accordion Body -->
       <div *ngIf="expanded" class="accordion-body">
-        <!-- Tabs -->
-        <div class="tabs-container">
-          <button *ngFor="let tab of tabs; let i = index" 
-                  (click)="activeTab = i"
-                  class="tab-btn"
-                  [class.active]="activeTab === i">
-            {{ tab }}
-          </button>
-        </div>
-
-        <!-- Tab Content -->
         
-        <!-- Packing List Tab -->
-        <div *ngIf="activeTab === 0">
-          <p class="tab-subtitle">Original uploaded packing list(s)</p>
-          <div *ngFor="let d of drafts" class="doc-box mb-4">
-            <span style="font-weight: 500;">📄 {{ d.source_name }}</span>
-            <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Document</button>
+        <!-- Top Section: Uploaded Packing Lists side by side -->
+        <div class="mb-8">
+          <p class="tab-subtitle mb-4">Original uploaded packing list(s)</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+            <div *ngFor="let d of drafts" class="doc-box" style="flex: 1; min-width: 250px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
+              <span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 12px;">📄 {{ d.source_name }}</span>
+              <button class="btn-secondary" style="white-space: nowrap;" (click)="viewDoc(d)">👁️ View</button>
+            </div>
           </div>
         </div>
 
-        <!-- HBL Details Tab -->
-        <div *ngIf="activeTab === 1">
+        <hr class="mb-8" style="border: none; border-top: 1px solid #e2e8f0;" />
+
+        <!-- Form and Generated PDF Section -->
+        <div>
           <div *ngIf="isLocked" class="alert-success mb-6">
             Final HBL generated. Saved HBL details are locked.
           </div>
@@ -108,8 +101,9 @@
               </div>
             </div>
 
-            <div class="mt-6 flex gap-4" *ngIf="!isLocked">
+            <div class="mt-6 flex gap-4" *ngIf="!isLocked" style="align-items: center;">
               <button type="submit" class="btn-primary">Save HBL Details</button>
+              <button type="button" class="btn-primary" [disabled]="!detailsConfirmed" (click)="generateHbl()" style="background-color: #0f172a;">Generate Final HBL PDF</button>
             </div>
             
             <div *ngIf="hblForm.submitted && hblForm.invalid && !detailsConfirmed" class="alert-error mt-4">
@@ -119,22 +113,17 @@
               Required HBL details saved. This draft is ready for final generation.
             </div>
           </form>
-        </div>
 
-        <!-- HBL Preview Tab -->
-        <div *ngIf="activeTab === 2">
-          <div *ngIf="!isLocked">
-            <div class="alert-info mb-6">
-              Complete and save the required HBL details before generating the final PDF.
-            </div>
-            <button class="btn-primary" [disabled]="!detailsConfirmed" (click)="generateHbl()">Generate Final HBL PDF</button>
-          </div>
-          <div *ngIf="isLocked">
+          <!-- Generated HBLs -->
+          <div *ngIf="isLocked" class="mt-8">
+            <h4 class="mb-4 pb-2 border-b">Generated Final HBL</h4>
             <p class="tab-subtitle">Final HBL number: <code style="background: #f1f5f9; padding: 2px 4px; border-radius: 4px;">{{ primaryDraft?.hbl_number }}</code></p>
-            <div *ngFor="let d of drafts">
-              <div *ngIf="d.hbl_pdf" class="doc-box mb-4">
-                <span style="font-weight: 500;">📄 {{ d.hbl_filename }}</span>
-                <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Full HBL</button>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+              <div *ngFor="let d of drafts">
+                <div *ngIf="d.hbl_pdf" class="doc-box" style="flex: 1; min-width: 250px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
+                  <span style="font-weight: 500;">📄 {{ d.hbl_filename }}</span>
+                  <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Full HBL</button>
+                </div>
               </div>
             </div>
           </div>
