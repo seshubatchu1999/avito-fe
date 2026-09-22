@@ -3,7 +3,7 @@ name: Deploy Angular FE to GitHub Pages
 on:
   push:
     branches:
-      - main  # Change to 'master' if your default branch is master
+      - '**'  # Change to 'master' if your default branch is master
     paths:
       - 'dist/**'  # Triggers whenever files in dist/ change
 
