@@ -111,6 +111,7 @@ export interface ReviewDraft {
   source_name: string;
   source_document: string; // base64 or buffer
   mime_type: string;
+  group_id?: string;
   packing_list: PackingList;
   hbl_details: HblManualDetails;
   details_confirmed: boolean;

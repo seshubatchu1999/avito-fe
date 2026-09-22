@@ -67,6 +67,7 @@ export class UploaderComponent {
   extract() {
     if (this.selectedFiles.length > 0) {
       this.filesSelected.emit([...this.selectedFiles]);
+      console.log(this.selectedFiles)
     }
   }
 

@@ -16,12 +16,10 @@ import { ToastService } from '../../../../core/services/toast.service';
 export class HblDraftComponent {
   @Input() drafts: ReviewDraft[] = [];
   @Input() expanded = false;
+  @Input() groupColor: string | null = null;
   
   @Output() draftsUpdated = new EventEmitter<ReviewDraft[]>();
   @Output() generateRequested = new EventEmitter<ReviewDraft[]>();
-
-  tabs = ['Packing List', 'Complete HBL Details', 'HBL Preview'];
-  activeTab = 0;
   
   formData: any;
   
