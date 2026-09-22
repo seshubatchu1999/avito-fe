@@ -27,7 +27,7 @@ export class AppComponent {
   hblReviews: ReviewDraft[] = [];
   mblReview: MblReview | null = null;
   selectedDraftIndices = new Set<number>([0]);
-  groupedSelectedDrafts: { color: string | null, drafts: ReviewDraft[] }[] = [];
+  isMultiSelectOpen: boolean = false;
   
   // Group coloring
   groupColors: { [key: string]: string } = {};
@@ -89,27 +89,15 @@ export class AppComponent {
         });
       });
       
-      const numGroupsFound = Object.keys(this.groupColors).length;
+      const numGroupsFound = Object.keys(response).filter(k => response[k].length > 1).length;
       if (numGroupsFound > 0) {
         this.toast.show(`${numGroupsFound} group(s) found`, 'info');
       } else {
         this.toast.show(`Successfully extracted ${newFiles.length} packing list(s)`, 'success');
       }
 
-      // Default selection logic
-      this.selectedDraftIndices = new Set();
-      if (numGroupsFound > 0) {
-          const firstGroupId = Object.keys(this.groupColors)[0];
-          this.hblReviews.forEach((r, i) => {
-              if (r.group_id === firstGroupId) {
-                  this.selectedDraftIndices.add(i);
-              }
-          });
-      } else {
-          if (this.hblReviews.length > 0) {
-              this.selectedDraftIndices.add(0);
-          }
-      }
+      // Default selection logic: select all by default to show all n groups and singles
+      this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
 
       this.updateGroupedDrafts();
       this.isExtracting = false;
@@ -208,10 +196,20 @@ export class AppComponent {
 
   clearSuggestions() {
     this.groupColors = {};
-    this.selectedDraftIndices = new Set();
+    this.hblReviews.forEach(draft => {
+      draft.group_id = 'single_' + Math.random().toString(36).substring(7);
+    });
+    this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
     this.toast.show('Suggestion groups cleared', 'info');
     this.updateGroupedDrafts();
     this.cdr.detectChanges();
+  }
+
+  addGroup() {
+    const nextIndex = Object.keys(this.groupColors).length;
+    const newGroupId = 'group_' + Math.random().toString(36).substring(7);
+    this.groupColors[newGroupId] = this.availableColors[nextIndex % this.availableColors.length];
+    this.updateGroupedDrafts();
   }
 
   toggleSelection(index: number) {
@@ -251,7 +249,74 @@ export class AppComponent {
     return Object.keys(this.groupColors).length > 0;
   }
 
+  // Drag and drop state
+  draggedDraftIndex: number | null = null;
+
+  onDragStart(event: DragEvent, index: number) {
+    this.draggedDraftIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', index.toString());
+    }
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDrop(event: DragEvent, targetGroupId: string | null) {
+    event.preventDefault();
+    if (this.draggedDraftIndex !== null) {
+      const draft = this.hblReviews[this.draggedDraftIndex];
+      if (targetGroupId !== null) {
+        draft.group_id = targetGroupId;
+      } else {
+        // Create a new unique group ID that has no color to make it a single
+        draft.group_id = 'single_' + Math.random().toString(36).substring(7);
+      }
+      this.updateGroupedDrafts();
+      this.draggedDraftIndex = null;
+    }
+  }
+
+  groupedSelectedDrafts: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
+  groupedAllDrafts: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
+  ungroupedDrafts: ReviewDraft[] = [];
+
+  getDraftIndex(draft: ReviewDraft): number {
+    return this.hblReviews.indexOf(draft);
+  }
+
   updateGroupedDrafts() {
+    // 1. Compute groupedAllDrafts for the drag-and-drop tree zones (shows everything)
+    const allGroupsMap = new Map<string, ReviewDraft[]>();
+    this.ungroupedDrafts = [];
+
+    this.hblReviews.forEach(draft => {
+       if (draft.group_id && this.groupColors[draft.group_id]) {
+           if (!allGroupsMap.has(draft.group_id)) {
+               allGroupsMap.set(draft.group_id, []);
+           }
+           allGroupsMap.get(draft.group_id)!.push(draft);
+       } else {
+           this.ungroupedDrafts.push(draft);
+       }
+    });
+
+    const allResult: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
+    Object.keys(this.groupColors).forEach(groupId => {
+       allResult.push({ 
+         groupId, 
+         color: this.groupColors[groupId], 
+         drafts: allGroupsMap.get(groupId) || [] 
+       });
+    });
+    this.groupedAllDrafts = allResult;
+
+    // 2. Compute groupedSelectedDrafts for the HBL Accordions below (shows only selected)
     const selected = this.getSelectedDrafts();
     if (selected.length === 0) {
       this.groupedSelectedDrafts = [];
@@ -272,12 +337,19 @@ export class AppComponent {
        }
     });
 
-    const result: { color: string | null, drafts: ReviewDraft[] }[] = [];
+    const result: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
+    
+    // Only include groups that have selected drafts for the accordions
     groupsMap.forEach((drafts, groupId) => {
-       result.push({ color: this.groupColors[groupId], drafts });
+       result.push({ 
+         groupId, 
+         color: this.groupColors[groupId], 
+         drafts 
+       });
     });
+
     singles.forEach(drafts => {
-       result.push({ color: null, drafts });
+       result.push({ groupId: null, color: null, drafts });
     });
 
     this.groupedSelectedDrafts = result;

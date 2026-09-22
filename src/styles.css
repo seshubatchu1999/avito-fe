@@ -11,7 +11,6 @@ body {
   color: #334155;
   line-height: 1.5;
   height: 100vh;
-  overflow: hidden;
 }
 
 /* Typography */
@@ -360,7 +359,6 @@ h1, h2, h3, h4 {
   height: 85vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 .modal-header {
   display: flex;
