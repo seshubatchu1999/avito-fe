@@ -30,10 +30,15 @@ export class HblDraftComponent {
   constructor(private toast: ToastService) {}
 
   ngOnInit() {
+    this.expanded = false;
     this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes: any) {
+    if (changes['drafts']) {
+      // Force accordion closed when underlying drafts are completely re-evaluated
+      this.expanded = false;
+    }
     if (!this.formData && this.drafts.length > 0) {
       this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
     }
