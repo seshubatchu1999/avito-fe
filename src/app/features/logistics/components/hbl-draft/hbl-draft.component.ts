@@ -10,7 +10,6 @@ import { ToastService } from '../../../../core/services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule, DocumentModalComponent],
   templateUrl: './hbl-draft.component.html',
-
   styleUrls: ['./hbl-draft.component.css'],
 })
 export class HblDraftComponent {
@@ -26,21 +25,28 @@ export class HblDraftComponent {
   selectedDocUrl: string | null = null;
   selectedDocName: string = '';
   selectedDocMime: string = '';
+  selectedPackingListIndex: number = 0;
 
   constructor(private toast: ToastService) {}
 
   ngOnInit() {
-    this.expanded = false;
     this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
+    this.selectedPackingListIndex = 0;
   }
 
   ngOnChanges(changes: any) {
     if (changes['drafts']) {
-      // Force accordion closed when underlying drafts are completely re-evaluated
-      this.expanded = false;
+      this.selectedPackingListIndex = 0;
     }
     if (!this.formData && this.drafts.length > 0) {
       this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
+    }
+  }
+
+  viewSelectedDoc() {
+    const draft = this.drafts[this.selectedPackingListIndex] || this.drafts[0];
+    if (draft) {
+      this.viewDoc(draft);
     }
   }
 
