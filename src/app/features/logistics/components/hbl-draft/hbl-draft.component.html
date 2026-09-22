@@ -16,24 +16,14 @@
 
       <!-- Accordion Body -->
       <div *ngIf="expanded" class="accordion-body">
-        <!-- Stepper -->
-        <div class="stepper-container">
-          <ng-container *ngFor="let tab of tabs; let i = index; let last = last">
-            <div class="step" 
-                 [class.active]="activeTab === i" 
-                 [class.completed]="activeTab > i || (i === 1 && detailsConfirmed) || (i === 0 && detailsConfirmed)"
-                 [class.disabled]="isTabDisabled(i)"
-                 (click)="selectTab(i)">
-              <div class="step-circle">
-                <ng-container *ngIf="activeTab > i || (i === 1 && detailsConfirmed) || (i === 0 && detailsConfirmed); else stepNum">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </ng-container>
-                <ng-template #stepNum>{{ i + 1 }}</ng-template>
-              </div>
-              <div class="step-label">{{ tab }}</div>
-            </div>
-            <div *ngIf="!last" class="step-line" [class.completed]="activeTab > i || (i === 0 && detailsConfirmed)"></div>
-          </ng-container>
+        <!-- Tabs -->
+        <div class="tabs-container">
+          <button *ngFor="let tab of tabs; let i = index" 
+                  (click)="activeTab = i"
+                  class="tab-btn"
+                  [class.active]="activeTab === i">
+            {{ tab }}
+          </button>
         </div>
 
         <!-- Tab Content -->
@@ -49,6 +39,9 @@
 
         <!-- HBL Details Tab -->
         <div *ngIf="activeTab === 1">
+          <div *ngIf="isLocked" class="alert-success mb-6">
+            Final HBL generated. Saved HBL details are locked.
+          </div>
           <p *ngIf="!isLocked" class="tab-subtitle">Confirm the information received from shipping instructions.</p>
           
           <form #hblForm="ngForm" (ngSubmit)="saveDetails(hblForm)" [class.form-submitted]="hblForm.submitted">
@@ -115,21 +108,8 @@
               </div>
             </div>
 
-            <div *ngIf="isLocked" class="card mt-6" style="background-color: #f8fafc; border: 1px solid #e2e8f0; box-shadow: none;">
-              <p class="success-text">Final HBL generated from {{ drafts.length }} Packing List(s).</p>
-              <p class="info-text">Final HBL number: <code class="code-block">{{ primaryDraft?.hbl_number }}</code></p>
-              
-              <div *ngFor="let d of drafts" style="margin-top: 16px;">
-                <div *ngIf="d.hbl_pdf" class="doc-box" style="margin-bottom: 0;">
-                  <span class="doc-title">📄 {{ d.hbl_filename }}</span>
-                  <button type="button" class="btn-secondary" (click)="viewHblPdf(d)">👁️ View Full HBL</button>
-                </div>
-              </div>
-            </div>
-
             <div class="mt-6 flex gap-4" *ngIf="!isLocked">
               <button type="submit" class="btn-primary">Save HBL Details</button>
-              <button type="button" class="btn-primary" [disabled]="!detailsConfirmed" (click)="generateHbl()">Generate Final HBL PDF</button>
             </div>
             
             <div *ngIf="hblForm.submitted && hblForm.invalid && !detailsConfirmed" class="alert-error mt-4">
@@ -141,12 +121,23 @@
           </form>
         </div>
 
-        <!-- Complete MBL Details Tab -->
+        <!-- HBL Preview Tab -->
         <div *ngIf="activeTab === 2">
-          <div *ngIf="!isLocked" class="alert-info mb-6">
-            Generate the final HBL PDF first to proceed to MBL details.
+          <div *ngIf="!isLocked">
+            <div class="alert-info mb-6">
+              Complete and save the required HBL details before generating the final PDF.
+            </div>
+            <button class="btn-primary" [disabled]="!detailsConfirmed" (click)="generateHbl()">Generate Final HBL PDF</button>
           </div>
-          <ng-content></ng-content>
+          <div *ngIf="isLocked">
+            <p class="tab-subtitle">Final HBL number: <code style="background: #f1f5f9; padding: 2px 4px; border-radius: 4px;">{{ primaryDraft?.hbl_number }}</code></p>
+            <div *ngFor="let d of drafts">
+              <div *ngIf="d.hbl_pdf" class="doc-box mb-4">
+                <span style="font-weight: 500;">📄 {{ d.hbl_filename }}</span>
+                <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Full HBL</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

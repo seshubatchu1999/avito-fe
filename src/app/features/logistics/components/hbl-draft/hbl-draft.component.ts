@@ -20,22 +20,8 @@ export class HblDraftComponent {
   @Output() draftsUpdated = new EventEmitter<ReviewDraft[]>();
   @Output() generateRequested = new EventEmitter<ReviewDraft[]>();
 
-  @Input() hasMbl = false;
-  tabs = ['Packing List', 'Complete HBL Details', 'Complete MBL Details'];
+  tabs = ['Packing List', 'Complete HBL Details', 'HBL Preview'];
   activeTab = 0;
-
-  isTabDisabled(index: number): boolean {
-    if (index === 2) {
-      return !this.isLocked;
-    }
-    return false;
-  }
-
-  selectTab(index: number) {
-    if (!this.isTabDisabled(index)) {
-      this.activeTab = index;
-    }
-  }
   
   formData: any;
   
@@ -49,7 +35,7 @@ export class HblDraftComponent {
     this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
   }
 
-  ngOnChanges(changes: any) {
+  ngOnChanges() {
     if (!this.formData && this.drafts.length > 0) {
       this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
     }
@@ -59,12 +45,6 @@ export class HblDraftComponent {
     this.selectedDocUrl = draft.source_document || null;
     this.selectedDocName = draft.source_name;
     this.selectedDocMime = draft.mime_type;
-  }
-
-  viewHblPdf(draft: ReviewDraft) {
-    this.selectedDocUrl = draft.hbl_pdf || null;
-    this.selectedDocName = draft.hbl_filename || 'HBL PDF';
-    this.selectedDocMime = 'application/pdf';
   }
 
   closeDoc() {
