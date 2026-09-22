@@ -17,14 +17,18 @@
       <!-- Accordion Body -->
       <div *ngIf="expanded" class="accordion-body">
         
-        <!-- Top Section: Uploaded Packing Lists side by side -->
+        <!-- Top Section: Uploaded Packing Lists Dropdown -->
         <div class="mb-8">
-          <p class="tab-subtitle mb-4">Original uploaded packing list(s)</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 16px;">
-            <div *ngFor="let d of drafts" class="doc-box" style="flex: 1; min-width: 250px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
-              <span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 12px;">📄 {{ d.source_name }}</span>
-              <button class="btn-secondary" style="white-space: nowrap;" (click)="viewDoc(d)">👁️ View</button>
-            </div>
+          <p class="tab-subtitle mb-2">Original uploaded packing list(s)</p>
+          <div style="display: flex; gap: 12px; align-items: center; max-width: 550px;">
+            <select class="form-input" [(ngModel)]="selectedPackingListIndex" style="flex: 1; cursor: pointer; height: 48px; min-height: 48px; padding: 8px 16px; font-size: 14px; line-height: 1.5; border-radius: 6px;">
+              <option *ngFor="let d of drafts; let i = index" [value]="i" style="padding: 8px;">
+                📄 {{ d.source_name }}
+              </option>
+            </select>
+            <button type="button" class="btn-secondary" style="height: 48px; min-height: 48px; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 0 20px; font-size: 14px; border-radius: 6px;" (click)="viewSelectedDoc()">
+              👁️ View PDF
+            </button>
           </div>
         </div>
 
