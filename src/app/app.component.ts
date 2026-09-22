@@ -212,15 +212,6 @@ export class AppComponent {
     this.updateGroupedDrafts();
   }
 
-  toggleSelection(index: number) {
-    if (this.selectedDraftIndices.has(index)) {
-      this.selectedDraftIndices.delete(index);
-    } else {
-      this.selectedDraftIndices.add(index);
-    }
-    this.updateGroupedDrafts();
-  }
-
   isDraftSelected(index: number): boolean {
     return this.selectedDraftIndices.has(index);
   }
@@ -230,16 +221,8 @@ export class AppComponent {
     const groupId = review.group_id;
     const gColor = (groupId && this.groupColors[groupId]) ? this.groupColors[groupId] : null;
 
-    if (this.isDraftSelected(index)) {
-      // Use group color if grouped, else use a default dark gray
-      const activeColor = gColor ? gColor : '#475569';
-      style['background-color'] = activeColor;
-      style['border-color'] = activeColor;
-      style['color'] = '#ffffff';
-    } else {
-      if (gColor) {
-        style['border-top'] = `4px solid ${gColor}`;
-      }
+    if (gColor) {
+      style['border-left'] = `4px solid ${gColor}`;
     }
     
     return Object.keys(style).length > 0 ? style : null;
@@ -271,15 +254,35 @@ export class AppComponent {
     event.preventDefault();
     if (this.draggedDraftIndex !== null) {
       const draft = this.hblReviews[this.draggedDraftIndex];
+      const oldGroupId = draft.group_id;
+
       if (targetGroupId !== null) {
         draft.group_id = targetGroupId;
       } else {
-        // Create a new unique group ID that has no color to make it a single
         draft.group_id = 'single_' + Math.random().toString(36).substring(7);
       }
+
+      if (oldGroupId && this.groupColors[oldGroupId] && oldGroupId !== targetGroupId) {
+        const hasRemaining = this.hblReviews.some(d => d.group_id === oldGroupId);
+        if (!hasRemaining) {
+          delete this.groupColors[oldGroupId];
+        }
+      }
+
       this.updateGroupedDrafts();
       this.draggedDraftIndex = null;
     }
+  }
+
+  removeGroup(groupId: string | null) {
+    if (!groupId) return;
+    this.hblReviews.forEach(draft => {
+      if (draft.group_id === groupId) {
+        draft.group_id = 'single_' + Math.random().toString(36).substring(7);
+      }
+    });
+    delete this.groupColors[groupId];
+    this.updateGroupedDrafts();
   }
 
   groupedSelectedDrafts: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];

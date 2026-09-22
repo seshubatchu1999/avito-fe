@@ -33,51 +33,62 @@
           </div>
         </div>
         
-        <div *ngIf="isMultiSelectOpen" class="accordion-body" style="padding: 16px; background: #ffffff; border-top: 1px solid #e2e8f0;">
-          <div style="display: flex; flex-direction: column; gap: 16px;">
-            <div *ngFor="let group of groupedAllDrafts; let gIdx = index"
-                 (dragover)="onDragOver($event)"
-                 (drop)="onDrop($event, group.groupId)"
-                 style="border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; min-height: 60px; background-color: #f8fafc;"
-                 [style.borderTop]="group.color ? '4px solid ' + group.color : '1px dashed #cbd5e1'">
-              <div style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px;">
-                 {{ group.color ? 'Group ' + (gIdx + 1) : 'Ungrouped' }}
-              </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap; min-height: 32px;">
-                <button *ngFor="let review of group.drafts"
-                        draggable="true"
-                        (dragstart)="onDragStart($event, getDraftIndex(review))"
-                        class="pill-btn"
-                        style="cursor: grab;"
-                        [class.selected]="isDraftSelected(getDraftIndex(review))"
-                        [ngStyle]="getGroupStyle(review, getDraftIndex(review))"
-                        (click)="toggleSelection(getDraftIndex(review))">
-                  {{ getDraftIndex(review) + 1 }}. {{ review.source_name }} ({{ review.details_confirmed ? 'Ready' : 'Draft' }})
-                </button>
-                <div *ngIf="group.drafts.length === 0" style="color: #94a3b8; font-size: 12px; font-style: italic; padding: 6px;">
-                  Drag PDFs here
-                </div>
-              </div>
-            </div>
+        <div *ngIf="isMultiSelectOpen" class="accordion-body" style="padding: 16px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
             
+            <!-- Ungrouped Drop Zone -->
             <div (dragover)="onDragOver($event)"
                  (drop)="onDrop($event, null)"
-                 style="border: 2px dashed #94a3b8; border-radius: 8px; padding: 16px; min-height: 80px; background-color: #f1f5f9;">
-              <div style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px;">Ungrouped Files (Drag here to ungroup)</div>
+                 style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: 260px; display: flex; flex-direction: column; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+              <div style="font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 16px; text-align: center; flex-shrink: 0;">
+                Ungrouped Files
+              </div>
               
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 4px;">
                 <button *ngFor="let review of ungroupedDrafts"
                         draggable="true"
                         (dragstart)="onDragStart($event, getDraftIndex(review))"
                         class="pill-btn"
-                        style="cursor: grab;"
-                        [class.selected]="isDraftSelected(getDraftIndex(review))"
-                        [ngStyle]="getGroupStyle(review, getDraftIndex(review))"
-                        (click)="toggleSelection(getDraftIndex(review))">
-                  {{ getDraftIndex(review) + 1 }}. {{ review.source_name }} ({{ review.details_confirmed ? 'Ready' : 'Draft' }})
+                        [ngStyle]="getGroupStyle(review, getDraftIndex(review))">
+                  <span>{{ getDraftIndex(review) + 1 }}. {{ review.source_name }}</span>
+                  <span style="font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
                 </button>
+                <div *ngIf="ungroupedDrafts.length === 0" style="color: #94a3b8; font-size: 12px; font-style: italic; padding: 6px; text-align: center;">
+                  Drag PDFs here to ungroup
+                </div>
               </div>
             </div>
+
+            <!-- Group Drop Zones -->
+            <div *ngFor="let group of groupedAllDrafts; let gIdx = index"
+                 (dragover)="onDragOver($event)"
+                 (drop)="onDrop($event, group.groupId)"
+                 style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: 260px; display: flex; flex-direction: column; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+                 [style.borderTop]="group.color ? '4px solid ' + group.color : '1px solid #e2e8f0'">
+              <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 16px; position: relative; flex-shrink: 0;">
+                <div style="font-size: 14px; font-weight: 600; color: #475569;">
+                   Group {{ gIdx + 1 }} (Drop Zone)
+                </div>
+                <button *ngIf="group.color" class="btn-outline-danger" style="position: absolute; right: -8px; top: -8px; padding: 2px 8px; font-size: 11px; border: none; background: transparent; color: #ef4444; cursor: pointer;" (click)="removeGroup(group.groupId)">
+                  Remove
+                </button>
+              </div>
+              
+              <div style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 4px;">
+                <button *ngFor="let review of group.drafts"
+                        draggable="true"
+                        (dragstart)="onDragStart($event, getDraftIndex(review))"
+                        class="pill-btn"
+                        [ngStyle]="getGroupStyle(review, getDraftIndex(review))">
+                  <span>{{ getDraftIndex(review) + 1 }}. {{ review.source_name }}</span>
+                  <span style="font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
+                </button>
+                <div *ngIf="group.drafts.length === 0" style="color: #94a3b8; font-size: 12px; font-style: italic; padding: 6px; text-align: center;">
+                  Drag PDFs here
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
