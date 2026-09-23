@@ -123,11 +123,9 @@
             <h4 class="mb-4 pb-2 border-b">Generated Final HBL</h4>
             <p class="tab-subtitle">Final HBL number: <code style="background: #f1f5f9; padding: 2px 4px; border-radius: 4px;">{{ primaryDraft?.hbl_number }}</code></p>
             <div style="display: flex; flex-wrap: wrap; gap: 16px;">
-              <div *ngFor="let d of drafts">
-                <div *ngIf="d.hbl_pdf" class="doc-box" style="flex: 1; min-width: 250px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
-                  <span style="font-weight: 500;">📄 {{ d.hbl_filename }}</span>
-                  <button class="btn-secondary" (click)="viewDoc(d)">👁️ View Full HBL</button>
-                </div>
+              <div *ngIf="primaryDraft?.hbl_pdf" class="doc-box" style="flex: 1; min-width: 250px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; max-width: 350px;">
+                <span style="font-weight: 500;">📄 {{ primaryDraft.hbl_filename }}</span>
+                <button type="button" class="btn-secondary" (click)="viewDoc(primaryDraft)">👁️ View Full HBL</button>
               </div>
             </div>
           </div>
