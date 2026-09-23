@@ -7,3 +7,4 @@
 .btn-with-icon span { display: flex; align-items: center; justify-content: center; gap: 4px; }
 .file-row { display: flex; align-items: center; width: 100%; }
 .extract-action-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+.file-list-container { max-height: 200px; overflow-y: auto; padding-right: 8px; }

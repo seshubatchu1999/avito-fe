@@ -27,6 +27,12 @@
   font-size: 15px;
 }
 
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
 .toast-close {
   background: none;
   border: none;
@@ -39,6 +45,11 @@
 }
 .toast-close:hover {
   opacity: 1;
+}
+
+.toast-close-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* Themes */

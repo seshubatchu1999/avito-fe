@@ -19,22 +19,12 @@ h1, h2, h3, h4 {
 }
 
 /* Layout Utilities */
-.container {
-  width: 95%;
-  max-width: 1600px;
-  margin: 0 auto;
-}
+
 .flex { display: flex; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-center { justify-content: center; }
-.gap-2 { gap: 8px; }
-.gap-3 { gap: 12px; }
 .gap-4 { gap: 16px; }
 .gap-8 { gap: 32px; }
 .grid { display: grid; }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.mt-2 { margin-top: 8px; }
 .mt-4 { margin-top: 16px; }
 .mt-6 { margin-top: 24px; }
 .mt-8 { margin-top: 32px; }
@@ -44,35 +34,13 @@ h1, h2, h3, h4 {
 .mb-6 { margin-bottom: 24px; }
 .mb-8 { margin-bottom: 32px; }
 .pb-2 { padding-bottom: 8px; }
-.pb-20 { padding-bottom: 80px; }
-.py-4 { padding-top: 16px; padding-bottom: 16px; }
-.py-6 { padding-top: 24px; padding-bottom: 24px; }
-.px-6 { padding-left: 24px; padding-right: 24px; }
-.p-4 { padding: 16px; }
-.p-6 { padding: 24px; }
-.p-10 { padding: 40px; }
-.w-full { width: 100%; }
 
 /* Borders & Backgrounds */
 .border-b { border-bottom: 1px solid #e2e8f0; }
 .border-t { border-top: 1px solid #e2e8f0; }
-.bg-white { background-color: #ffffff; }
 
 /* Components */
-.header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 12px 0;
-  margin-bottom: 16px;
-}
-.header-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a2b4c;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+
 
 .btn-primary {
   background-color: #f26d21;
@@ -184,39 +152,7 @@ h1, h2, h3, h4 {
   font-weight: 500;
 }
 
-.alert-info {
-  background-color: #eff6ff;
-  color: #1d4ed8;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #bfdbfe;
-  font-weight: 500;
-}
 
-/* Tabs */
-.tabs-container {
-  display: flex;
-  gap: 24px;
-  border-bottom: 1px solid #e2e8f0;
-  margin-bottom: 24px;
-}
-.tab-btn {
-  background: none;
-  border: none;
-  padding-bottom: 8px;
-  font-weight: 500;
-  font-size: 15px;
-  color: #64748b;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-}
-.tab-btn:hover {
-  color: #334155;
-}
-.tab-btn.active {
-  color: #f26d21;
-  border-bottom-color: #f26d21;
-}
 
 /* Uploader */
 .uploader-card {
