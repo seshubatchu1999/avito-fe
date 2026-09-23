@@ -50,6 +50,8 @@ export class AppComponent {
       return;
     }
 
+    const isSubsequentUpload = this.hblReviews.length > 0;
+
     this.isExtracting = true;
     this.cdr.detectChanges();
     
@@ -57,7 +59,7 @@ export class AppComponent {
       
       Object.keys(response).forEach(groupId => {
         const groupItems = response[groupId];
-        if (groupItems.length > 1) {
+        if (!isSubsequentUpload && groupItems.length > 1) {
           // Assign a color if not already assigned
           if (!this.groupColors[groupId]) {
              const colorIndex = Object.keys(this.groupColors).length % this.availableColors.length;
@@ -69,13 +71,18 @@ export class AppComponent {
           const file = newFiles.find(f => f.name === item.file_name);
           if (!file) return;
 
+          let finalGroupId = groupId;
+          if (isSubsequentUpload || groupItems.length === 1) {
+            finalGroupId = 'single_' + Math.random().toString(36).substring(7);
+          }
+
           const packingList = item.packing_list;
           const newDraft: ReviewDraft = {
             draft_id: Math.random().toString(36).substring(7),
             source_name: file.name,
             source_document: URL.createObjectURL(file),
             mime_type: file.type || 'application/pdf',
-            group_id: groupId,
+            group_id: finalGroupId,
             packing_list: packingList,
             details_confirmed: false,
             hbl_details: {
