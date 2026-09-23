@@ -28,6 +28,7 @@ export class AppComponent {
   mblReview: MblReview | null = null;
   selectedDraftIndices = new Set<number>([0]);
   isMultiSelectOpen: boolean = false;
+  currentStep: number = 1;
   
   // Group coloring
   groupColors: { [key: string]: string } = {};
@@ -100,6 +101,7 @@ export class AppComponent {
       this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
 
       this.updateGroupedDrafts();
+      this.currentStep = 1;
       this.isExtracting = false;
       this.cdr.detectChanges();
     });
@@ -164,6 +166,7 @@ export class AppComponent {
           }
         };
       }
+      this.currentStep = 2;
     }
   }
 
@@ -186,6 +189,7 @@ export class AppComponent {
     this.hblReviews = [];
     this.mblReview = null;
     this.selectedDraftIndices = new Set<number>([0]);
+    this.currentStep = 1;
     this.groupColors = {};
     if (this.uploaderComponent) {
       this.uploaderComponent.clearAll();
