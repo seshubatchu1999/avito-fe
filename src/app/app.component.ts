@@ -141,6 +141,7 @@ export class AppComponent {
       
       this.checkMblReadiness();
       this.isGenerating = false;
+      this.updateGroupedDrafts();
       this.cdr.detectChanges();
     });
   }
