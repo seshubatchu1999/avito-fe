@@ -23,7 +23,8 @@ export class MblSectionComponent {
   constructor(private toast: ToastService) {}
 
   getIncludedHblNumbers(): string {
-    return this.reviews.map(r => r.hbl_number).join(', ');
+    const hblNumbers = this.reviews.map(r => r.hbl_number).filter(n => !!n);
+    return Array.from(new Set(hblNumbers)).join(', ');
   }
 
   saveDetails(form: any) {
