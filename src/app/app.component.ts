@@ -202,6 +202,15 @@ export class AppComponent {
     this.groupColors = {};
     this.hblReviews.forEach(draft => {
       draft.group_id = 'single_' + Math.random().toString(36).substring(7);
+      draft.details_confirmed = false;
+      draft.hbl_details = {
+        hbl_number: null,
+        notify_party: JSON.parse(JSON.stringify(draft.packing_list.notify_party || { name: null, address: null, tax_id: null })),
+        container_number: draft.packing_list.containers?.[0]?.container_number || null,
+        seal_number: draft.packing_list.containers?.[0]?.seal_numbers?.[0] || null,
+        freight_terms: draft.packing_list.freight_terms
+      };
+      draft.hbl_number = undefined;
     });
     this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
     this.toast.show('Suggestion groups cleared', 'info');
@@ -240,6 +249,11 @@ export class AppComponent {
   draggedDraftIndex: number | null = null;
 
   onDragStart(event: DragEvent, index: number) {
+    const draft = this.hblReviews[index];
+    if (this.isGroupSaved(draft.group_id)) {
+      event.preventDefault();
+      return;
+    }
     this.draggedDraftIndex = index;
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
@@ -247,7 +261,15 @@ export class AppComponent {
     }
   }
 
-  onDragOver(event: DragEvent) {
+  isGroupSaved(groupId: string | null | undefined): boolean {
+    if (!groupId) return false;
+    return this.hblReviews.some(d => d.group_id === groupId && d.details_confirmed);
+  }
+
+  onDragOver(event: DragEvent, groupId: string | null = null) {
+    if (this.isGroupSaved(groupId)) {
+      return; // Do not prevent default; browser will block drop
+    }
     event.preventDefault();
     if (event.dataTransfer) {
       event.dataTransfer.dropEffect = 'move';
@@ -255,6 +277,8 @@ export class AppComponent {
   }
 
   onDrop(event: DragEvent, targetGroupId: string | null) {
+    if (this.isGroupSaved(targetGroupId)) return; // Prevent drops into saved groups
+    
     event.preventDefault();
     if (this.draggedDraftIndex !== null) {
       const draft = this.hblReviews[this.draggedDraftIndex];
