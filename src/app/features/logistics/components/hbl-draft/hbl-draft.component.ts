@@ -37,9 +37,11 @@ export class HblDraftComponent {
   ngOnChanges(changes: any) {
     if (changes['drafts']) {
       this.selectedPackingListIndex = 0;
-    }
-    if (!this.formData && this.drafts.length > 0) {
-      this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
+      if (this.drafts.length > 0) {
+        this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
+      } else {
+        this.formData = null;
+      }
     }
   }
 

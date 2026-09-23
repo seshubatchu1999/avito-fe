@@ -218,8 +218,12 @@ export class AppComponent {
         seal_number: draft.packing_list.containers?.[0]?.seal_numbers?.[0] || null,
         freight_terms: draft.packing_list.freight_terms
       };
-      draft.hbl_number = undefined;
+      delete draft.hbl_number;
+      delete draft.hbl_pdf;
+      delete draft.hbl_filename;
     });
+    this.mblReview = null;
+    this.currentStep = 1;
     this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
     this.toast.show('Suggestion groups cleared', 'info');
     this.updateGroupedDrafts();
