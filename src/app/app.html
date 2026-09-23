@@ -87,9 +87,10 @@
                 
                 <div style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 4px;">
                   <button *ngFor="let review of ungroupedDrafts"
-                          draggable="true"
+                          [attr.draggable]="isGroupSaved(review.group_id) ? null : 'true'"
                           (dragstart)="onDragStart($event, getDraftIndex(review))"
                           class="pill-btn"
+                          [style.cursor]="isGroupSaved(review.group_id) ? 'not-allowed' : 'grab'"
                           [ngStyle]="getGroupStyle(review, getDraftIndex(review))">
                     <span>{{ getDraftIndex(review) + 1 }}. {{ review.source_name }}</span>
                     <span style="font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
@@ -102,24 +103,26 @@
 
               <!-- Group Drop Zones -->
               <div *ngFor="let group of groupedAllDrafts; let gIdx = index"
-                   (dragover)="onDragOver($event)"
+                   (dragover)="onDragOver($event, group.groupId)"
                    (drop)="onDrop($event, group.groupId)"
-                   style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: 260px; display: flex; flex-direction: column; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                   [style.borderTop]="group.color ? '4px solid ' + group.color : '1px solid #e2e8f0'">
+                   style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: 260px; display: flex; flex-direction: column; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: opacity 0.3s;"
+                   [style.borderTop]="group.color ? '4px solid ' + group.color : '1px solid #e2e8f0'"
+                   [style.opacity]="isGroupSaved(group.groupId) ? '0.5' : '1'">
                 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 16px; position: relative; flex-shrink: 0;">
                   <div style="font-size: 14px; font-weight: 600; color: #475569;">
                      Group {{ gIdx + 1 }} (Drop Zone)
                   </div>
-                  <button *ngIf="group.color" class="btn-outline-danger" style="position: absolute; right: -8px; top: -8px; padding: 2px 8px; font-size: 11px; border: none; background: transparent; color: #ef4444; cursor: pointer;" (click)="removeGroup(group.groupId)">
+                  <button *ngIf="group.color && !isGroupSaved(group.groupId)" class="btn-outline-danger" style="position: absolute; right: -8px; top: -8px; padding: 2px 8px; font-size: 11px; border: none; background: transparent; color: #ef4444; cursor: pointer;" (click)="removeGroup(group.groupId)">
                     Remove
                   </button>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 4px;">
                   <button *ngFor="let review of group.drafts"
-                          draggable="true"
+                          [attr.draggable]="isGroupSaved(group.groupId) ? null : 'true'"
                           (dragstart)="onDragStart($event, getDraftIndex(review))"
                           class="pill-btn"
+                          [style.cursor]="isGroupSaved(group.groupId) ? 'not-allowed' : 'grab'"
                           [ngStyle]="getGroupStyle(review, getDraftIndex(review))">
                     <span>{{ getDraftIndex(review) + 1 }}. {{ review.source_name }}</span>
                     <span style="font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
