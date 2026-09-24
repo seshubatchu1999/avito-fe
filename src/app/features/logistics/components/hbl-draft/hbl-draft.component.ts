@@ -76,6 +76,21 @@ export class HblDraftComponent {
     }
     
     const savedData = JSON.parse(JSON.stringify(this.formData));
+    const newHblNumber = savedData.hbl_number;
+
+    // Validation: HBL Number must be unique across different groups
+    const currentDraftIds = new Set(this.drafts.map(d => d.draft_id));
+    const isDuplicate = this.workflow.hblReviews().some(r => 
+      !currentDraftIds.has(r.draft_id) && 
+      r.hbl_number === newHblNumber
+    );
+
+    if (isDuplicate) {
+      form.controls['hblNumber']?.setErrors({ duplicate: true });
+      this.toast.show('This HBL number is already in use by another group. Please enter a different HBL number.', 'error');
+      return;
+    }
+
     this.drafts.forEach(d => {
       this.workflow.updateDraft(d.draft_id, {
         details_confirmed: true,
