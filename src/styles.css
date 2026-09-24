@@ -116,11 +116,13 @@ h1, h2, h3, h4 {
   color: #ef4444;
   font-size: 13px;
   margin-top: 6px;
-  display: none;
+  display: block;
+  visibility: hidden;
+  min-height: 20px;
 }
 .form-input.is-invalid.ng-touched ~ .error-text,
 .form-submitted .form-input.is-invalid ~ .error-text {
-  display: block;
+  visibility: visible;
 }
 
 .card {
@@ -386,3 +388,12 @@ h1, h2, h3, h4 {
 @keyframes circle-middle6123 { 0% { stroke-dashoffset: 17; } 25% { stroke-dashoffset: 0; } 65% { stroke-dashoffset: 204; } 80% { stroke-dashoffset: 187; } 100% { stroke-dashoffset: 187; } }
 @keyframes circle-inner162 { 0% { stroke-dashoffset: 9; } 25% { stroke-dashoffset: 0; } 65% { stroke-dashoffset: 106; } 80% { stroke-dashoffset: 97; } 100% { stroke-dashoffset: 97; } }
 @keyframes text-animation76 { 0% { clip-path: inset(0 100% 0 0); } 50% { clip-path: inset(0); } 100% { clip-path: inset(0 0 0 100%); } }
+
+.grid { display: grid; }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gap-4 { gap: 1rem; }
+.gap-8 { gap: 2rem; }
+.input-group { display: flex; align-items: stretch; }
+.input-group-text { display: flex; align-items: center; padding: 0 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-right: none; border-radius: 6px 0 0 6px; color: #64748b; font-weight: 500; font-size: 14px; }
+.group-input { border-radius: 0 6px 6px 0 !important; }

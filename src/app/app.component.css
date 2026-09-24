@@ -50,9 +50,7 @@
 
 /* NEW CLASSES */
 .app-header {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 12px 24px;
+  padding: 12px 0 24px 0;
   display: flex;
   align-items: center;
   gap: 24px;
@@ -60,8 +58,9 @@
 
 .logo-container {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
 }
 
 
@@ -129,7 +128,7 @@
 
 .hidden { display: none !important; }
 .layout-container { 
-  width: 90%; 
+  width: 100%; 
   margin: 0 auto; 
   height: 100vh;
   display: flex;
@@ -138,8 +137,10 @@
 }
 
 .header-title {
-  margin: 0;
-  font-size: 30px;
-  color: #0f172a;
-  font-weight: 800;
+ font-size: 20px;
+  font-weight: 700;
+  color: #1a2b4c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

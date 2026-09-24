@@ -1,19 +1,20 @@
 <app-toast></app-toast>
 <div class="layout-container">
-  <!-- Top Navigation Bar -->
-  <header class="app-header">
-    <div class="logo-container">
-      <img src="avito.png" alt="Avito Logo" class="header-logo" />
-      <div>
-        <h1 class="header-title">Packing Lists to Bills of Lading</h1>
-        <p class="header-subtitle">Create HBLs from packing lists, then consolidate completed HBLs into a carrier MBL.</p>
-      </div>
-    </div>
-  </header>
+
 
   <main class="main-layout">
     <!-- Left Column: Uploader -->
     <div class="left-panel" [class.full-width]="workflow.hblReviews().length === 0">
+      <header class="app-header">
+        <div class="logo-container">
+          <img src="avito.png" alt="Avito Logo" class="header-logo" />
+          <div>
+            <h1 class="header-title">Packing Lists to Bills of Lading</h1>
+            <p class="header-subtitle">Create HBLs from packing lists, then consolidate completed HBLs into a carrier MBL.</p>
+          </div>
+        </div>
+      </header>
+
       <app-uploader 
         (filesSelected)="processFiles($event)">
       </app-uploader>
@@ -51,10 +52,11 @@
           <!-- Dynamic HBL Forms per Group -->
           @if (workflow.groupedSelectedDrafts().length > 0) {
             <div>
-              @for (group of workflow.groupedSelectedDrafts(); track group.groupId) {
+              @for (group of workflow.groupedSelectedDrafts(); track group.groupId; let gIdx = $index) {
                 <app-hbl-draft 
                   [drafts]="group.drafts"
                   [groupColor]="group.color"
+                  [groupTitle]="group.color ? 'Group ' + (gIdx + 1) : 'Ungrouped File'"
                   [expanded]="false"
                   (generateRequested)="generateHbl($event)"
                 ></app-hbl-draft>
