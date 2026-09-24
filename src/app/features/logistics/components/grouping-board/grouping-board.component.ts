@@ -16,7 +16,7 @@ export class GroupingBoardComponent {
   workflow = inject(WorkflowStateService);
   isMultiSelectOpen = false;
 
-  drop(event: CdkDragDrop<ReviewDraft[]>, targetGroupId: string | null) {
+  drop(event: CdkDragDrop<any[]>, targetGroupId: string | null) {
     if (this.workflow.isGroupSaved(targetGroupId)) return;
     
     if (event.previousContainer === event.container) {
