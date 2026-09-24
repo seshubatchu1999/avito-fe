@@ -42,9 +42,11 @@
                     <div class="input-group">
                       <span class="input-group-text">#</span>
                       <input type="text" name="hblNumber" [(ngModel)]="formData.hbl_number" required #hblNumber="ngModel"
-                        class="form-input group-input" [class.is-invalid]="hblNumber.invalid && (hblNumber.touched || hblForm.submitted)" [disabled]="isLocked">
+                        class="form-input group-input" [class.is-invalid]="hblNumber.invalid && (hblNumber.touched || hblForm.submitted)" [disabled]="isLocked" (input)="hblNumber.control.setErrors(null)">
                     </div>
-                    <div class="error-text" [style.visibility]="hblNumber.invalid && (hblNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">HBL Number is required</div>
+                    <div class="error-text" [style.visibility]="hblNumber.invalid && (hblNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">
+                      {{ hblNumber.hasError('duplicate') ? 'HBL Number must be unique.' : 'HBL Number is required' }}
+                    </div>
                   </div>
 
                   <div class="mb-4">
@@ -127,9 +129,9 @@
               <p class="tab-subtitle">Final HBL number: <code class="hbl-number-code">{{ primaryDraft?.hbl_number }}</code></p>
               <div class="generated-hbl-container">
                 @if (primaryDraft?.hbl_pdf) {
-                  <div class="doc-box final-hbl-doc-box">
-                    <span class="doc-filename">📄 {{ primaryDraft.hbl_filename }}</span>
-                    <button type="button" class="btn-secondary" (click)="viewDoc(primaryDraft)">👁️ View Full HBL</button>
+                  <div class="doc-box final-hbl-doc-box" style="max-width: fit-content; gap: 16px;">
+                    <span class="doc-filename" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">📄 {{ primaryDraft.hbl_filename }}</span>
+                    <button type="button" title="View Full HBL" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="viewDoc(primaryDraft)">👁️</button>
                   </div>
                 }
               </div>
