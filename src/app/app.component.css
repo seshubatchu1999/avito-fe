@@ -11,7 +11,7 @@
   gap: 24px;
   flex: 1;
   overflow: hidden;
-  padding: 24px;
+  padding: 10px;
   background-color: #f1f5f9;
 }
 
@@ -20,6 +20,7 @@
   flex-direction: column;
   flex: 0 0 380px;
   overflow-y: auto;
+  overflow-y: hidden;
   padding-right: 12px;
   transition: all 0.3s;
 }
@@ -127,7 +128,14 @@
 
 
 .hidden { display: none !important; }
-.layout-container { width: 90%; margin: 0 auto; }
+.layout-container { 
+  width: 90%; 
+  margin: 0 auto; 
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
 .header-title {
   margin: 0;

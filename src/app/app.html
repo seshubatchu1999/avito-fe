@@ -49,7 +49,7 @@
           }
 
           <!-- Dynamic HBL Forms per Group -->
-          @if (workflow.groupedSelectedDrafts().length > 0 && !workflow.mblReview()) {
+          @if (workflow.groupedSelectedDrafts().length > 0) {
             <div>
               @for (group of workflow.groupedSelectedDrafts(); track group.groupId) {
                 <app-hbl-draft 

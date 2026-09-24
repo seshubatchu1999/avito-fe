@@ -86,6 +86,7 @@ export class HblDraftComponent {
   }
 
   generateHbl() {
+    this.expanded = false;
     this.generateRequested.emit(this.drafts);
   }
 
