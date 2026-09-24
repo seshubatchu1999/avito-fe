@@ -18,24 +18,7 @@
       @if (expanded) {
         <div class="accordion-body">
           
-          <!-- Top Section: Uploaded Packing Lists Dropdown -->
-        <div class="mb-8">
-          <p class="tab-subtitle mb-2">Original uploaded packing list(s)</p>
-          <div class="packing-list-select-container">
-            <select class="form-input packing-list-select" [(ngModel)]="selectedPackingListIndex">
-              @for (d of drafts; track i; let i = $index) {
-                <option [value]="i" class="packing-list-option">
-                  📄 {{ d.source_name }}
-                </option>
-              }
-            </select>
-            <button type="button" class="btn-secondary view-pdf-btn" (click)="viewSelectedDoc()">
-              👁️ View PDF
-            </button>
-          </div>
-        </div>
 
-        <hr class="mb-8 divider" />
 
         <!-- Form and Generated PDF Section -->
         <div>

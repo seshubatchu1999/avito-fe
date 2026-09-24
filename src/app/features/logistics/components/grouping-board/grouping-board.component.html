@@ -26,14 +26,17 @@
           
           <div class="grouping-drop-zone-list">
             @for (review of workflow.ungroupedDrafts(); track review.draft_id) {
-              <button cdkDrag
+              <div cdkDrag
                       [cdkDragDisabled]="workflow.isGroupSaved(review.group_id || null)"
                       class="pill-btn"
                       [class.is-saved]="workflow.isGroupSaved(review.group_id || null)"
                       [ngStyle]="review.uiGroupStyle">
                 <span>{{ review.uiGlobalIndex + 1 }}. {{ review.source_name }}</span>
-                <span class="grouping-draft-status">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
-              </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="grouping-draft-status">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
+                  <button type="button" (click)="docClicked.emit(review); $event.stopPropagation()" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b; display: flex; align-items: center;" title="View PDF">👁️</button>
+                </div>
+              </div>
             }
             @if (workflow.ungroupedDrafts().length === 0) {
               <div class="grouping-empty-text">
@@ -65,14 +68,17 @@
             
             <div class="grouping-drop-zone-list">
               @for (review of group.drafts; track review.draft_id) {
-                <button cdkDrag
+                <div cdkDrag
                         [cdkDragDisabled]="workflow.isGroupSaved(group.groupId)"
                         class="pill-btn"
                         [class.is-saved]="workflow.isGroupSaved(group.groupId)"
                         [ngStyle]="review.uiGroupStyle">
                   <span>{{ review.uiGlobalIndex + 1 }}. {{ review.source_name }}</span>
-                  <span class="grouping-draft-status">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
-                </button>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="grouping-draft-status">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
+                    <button type="button" (click)="docClicked.emit(review); $event.stopPropagation()" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b; display: flex; align-items: center;" title="View PDF">👁️</button>
+                  </div>
+                </div>
               }
               @if (group.drafts.length === 0) {
                 <div class="grouping-empty-text">
