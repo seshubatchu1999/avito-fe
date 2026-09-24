@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ReviewDraft } from '../../../../core/models/schemas';
 import { DocumentModalComponent } from '../../../../shared/components/document-modal/document-modal.component';
 import { ToastService } from '../../../../core/services/toast.service';
+import { WorkflowStateService } from '../../../../core/services/workflow-state.service';
 
 @Component({
   selector: 'app-hbl-draft',
@@ -11,13 +12,15 @@ import { ToastService } from '../../../../core/services/toast.service';
   imports: [CommonModule, FormsModule, DocumentModalComponent],
   templateUrl: './hbl-draft.component.html',
   styleUrls: ['./hbl-draft.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HblDraftComponent {
+  workflow = inject(WorkflowStateService);
+
   @Input() drafts: ReviewDraft[] = [];
   @Input() expanded = false;
   @Input() groupColor: string | null = null;
   
-  @Output() draftsUpdated = new EventEmitter<ReviewDraft[]>();
   @Output() generateRequested = new EventEmitter<ReviewDraft[]>();
   
   formData: any;
@@ -64,21 +67,26 @@ export class HblDraftComponent {
 
   saveDetails(form: NgForm) {
     if (form.invalid) {
-      this.drafts.forEach(d => d.details_confirmed = false);
+      this.drafts.forEach(d => {
+        this.workflow.updateDraft(d.draft_id, { details_confirmed: false });
+      });
       this.toast.show('Please complete all required fields.', 'error');
       return;
     }
     
+    const savedData = JSON.parse(JSON.stringify(this.formData));
     this.drafts.forEach(d => {
-      d.details_confirmed = true;
-      d.hbl_details = JSON.parse(JSON.stringify(this.formData));
-      d.hbl_number = d.hbl_details.hbl_number || undefined;
+      this.workflow.updateDraft(d.draft_id, {
+        details_confirmed: true,
+        hbl_details: savedData,
+        hbl_number: savedData.hbl_number || undefined
+      });
     });
-    this.draftsUpdated.emit(this.drafts);
     this.toast.show('HBL Details Saved successfully for selected packing lists', 'success');
   }
 
   generateHbl() {
+    this.expanded = false;
     this.generateRequested.emit(this.drafts);
   }
 

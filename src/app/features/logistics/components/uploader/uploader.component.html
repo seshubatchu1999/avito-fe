@@ -25,34 +25,38 @@
         </button>
       </div>
 
-      <div *ngIf="selectedFiles.length > 0">
-        <div class="upload-progress-header">
-          <div class="upload-progress-title">
-            Upload Progress
-            <span class="badge-orange">Completed: {{ selectedFiles.length }}</span>
-          </div>
-          <button class="btn-outline" (click)="clearAll()">Clear all</button>
-        </div>
-
-        <div class="file-list-container" style="max-height: 200px; overflow-y: auto; padding-right: 8px;">
-          <div *ngFor="let file of selectedFiles; let i = index" class="file-list-item">
-            <div class="file-row">
-              <div class="file-icon-box">
-                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              </div>
-              <div class="file-info">
-                <div class="file-name">{{ file.name }}</div>
-                <div class="file-size">{{ formatSize(file.size) }}</div>
-              </div>
-              <button class="file-remove-btn" (click)="removeFile(i)">
-                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+      @if (selectedFiles.length > 0) {
+        <div>
+          <div class="upload-progress-header">
+            <div class="upload-progress-title">
+              Upload Progress
+              <span class="badge-orange">Completed: {{ selectedFiles.length }}</span>
             </div>
+            <button class="btn-outline" (click)="clearAll()">Clear all</button>
+          </div>
+
+          <div class="file-list-container">
+            @for (file of selectedFiles; track i; let i = $index) {
+              <div class="file-list-item">
+                <div class="file-row">
+                  <div class="file-icon-box">
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                  </div>
+                  <div class="file-info">
+                    <div class="file-name">{{ file.name }}</div>
+                    <div class="file-size">{{ formatSize(file.size) }}</div>
+                  </div>
+                  <button class="file-remove-btn" (click)="removeFile(i)">
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="extract-action-row">
+            <button class="btn-primary" (click)="extract()">Extract Packing Lists</button>
           </div>
         </div>
-
-        <div class="extract-action-row">
-          <button class="btn-primary" (click)="extract()">Extract Packing Lists</button>
-        </div>
-      </div>
+      }
     </div>

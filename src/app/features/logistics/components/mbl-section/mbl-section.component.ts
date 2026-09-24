@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReviewDraft, MblReview } from '../../../../core/models/schemas';
@@ -10,8 +10,8 @@ import { ToastService } from '../../../../core/services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule, DocumentModalComponent],
   templateUrl: './mbl-section.component.html',
-
   styleUrls: ['./mbl-section.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MblSectionComponent {
   @Input() reviews!: ReviewDraft[];

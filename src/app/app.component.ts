@@ -1,48 +1,49 @@
-import { Component, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from './core/services/toast.service';
+import { BackendApiService } from './core/services/backend-api.service';
+import { DocumentExtractionService } from './core/services/document-extraction.service';
 import { UploaderComponent } from './features/logistics/components/uploader/uploader.component';
-import { WifiLoaderComponent } from './shared/components/wifi-loader/wifi-loader.component';
 import { HblDraftComponent } from './features/logistics/components/hbl-draft/hbl-draft.component';
 import { MblSectionComponent } from './features/logistics/components/mbl-section/mbl-section.component';
+import { GroupingBoardComponent } from './features/logistics/components/grouping-board/grouping-board.component';
+import { WifiLoaderComponent } from './shared/components/wifi-loader/wifi-loader.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
-import { ToastService } from './core/services/toast.service';
-import { DocumentExtractionService } from './core/services/document-extraction.service';
-import { BackendApiService } from './core/services/backend-api.service';
-import { ReviewDraft, MblReview, PackingList } from './core/models/schemas';
+import { ReviewDraft } from './core/models/schemas';
+import { WorkflowStateService } from './core/services/workflow-state.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, UploaderComponent, WifiLoaderComponent, HblDraftComponent, MblSectionComponent, ToastComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    UploaderComponent,
+    HblDraftComponent,
+    MblSectionComponent,
+    GroupingBoardComponent,
+    WifiLoaderComponent,
+    ToastComponent
+  ],
   templateUrl: './app.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-  @ViewChild('uploader') uploaderComponent!: UploaderComponent;
-  
-  isExtracting = false;
-  isGenerating = false;
-  
-  hblReviews: ReviewDraft[] = [];
-  mblReview: MblReview | null = null;
-  selectedDraftIndices = new Set<number>([0]);
-  isMultiSelectOpen: boolean = false;
-  currentStep: number = 1;
-  
-  // Group coloring
-  groupColors: { [key: string]: string } = {};
-  availableColors = ['#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899']; // Red, Blue, Amber, Violet, Emerald, Pink
+  workflow = inject(WorkflowStateService);
+
+  isExtracting = signal<boolean>(false);
+  isGenerating = signal<boolean>(false);
 
   constructor(
-    private extractionService: DocumentExtractionService, 
+    private toast: ToastService,
     private backendService: BackendApiService,
-    private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private extractionService: DocumentExtractionService
   ) {}
 
   processFiles(files: File[]) {
-    const existingNames = new Set(this.hblReviews.map(r => r.source_name));
+    const existingNames = new Set(this.workflow.hblReviews().map(r => r.source_name));
     const newFiles = files.filter(f => !existingNames.has(f.name));
 
     if (newFiles.length === 0) {
@@ -50,20 +51,20 @@ export class AppComponent {
       return;
     }
 
-    const isSubsequentUpload = this.hblReviews.length > 0;
+    const isSubsequentUpload = this.workflow.hblReviews().length > 0;
 
-    this.isExtracting = true;
-    this.cdr.detectChanges();
+    this.isExtracting.set(true);
     
     this.backendService.uploadFiles(newFiles).subscribe((response: any) => {
-      
+      let currentColors = { ...this.workflow.groupColors() };
+      const currentDrafts = [...this.workflow.hblReviews()];
+
       Object.keys(response).forEach(groupId => {
         const groupItems = response[groupId];
         if (!isSubsequentUpload && groupItems.length > 1) {
-          // Assign a color if not already assigned
-          if (!this.groupColors[groupId]) {
-             const colorIndex = Object.keys(this.groupColors).length % this.availableColors.length;
-             this.groupColors[groupId] = this.availableColors[colorIndex];
+          if (!currentColors[groupId]) {
+             const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
+             currentColors[groupId] = this.workflow.availableColors[colorIndex];
           }
         }
         
@@ -93,70 +94,44 @@ export class AppComponent {
               freight_terms: packingList.freight_terms
             }
           };
-          this.hblReviews.push(newDraft);
+          currentDrafts.push(newDraft);
         });
       });
+
+      this.workflow.setGroupColors(currentColors);
+      this.workflow.setHblReviews(currentDrafts);
       
-      const numGroupsFound = Object.keys(response).filter(k => response[k].length > 1).length;
-      if (numGroupsFound > 0) {
-        this.toast.show(`${numGroupsFound} group(s) found`, 'info');
-      } else {
-        this.toast.show(`Successfully extracted ${newFiles.length} packing list(s)`, 'success');
-      }
-
-      // Default selection logic: select all by default to show all n groups and singles
-      this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
-
-      this.updateGroupedDrafts();
-      this.currentStep = 1;
-      this.isExtracting = false;
-      this.cdr.detectChanges();
+      this.toast.show(`Extracted data from ${newFiles.length} files successfully`, 'success');
+      this.workflow.setCurrentStep(1);
+      this.isExtracting.set(false);
     });
-  }
-
-  getSelectedDrafts(): ReviewDraft[] {
-    const selected = [];
-    for (let i = 0; i < this.hblReviews.length; i++) {
-      if (this.selectedDraftIndices.has(i)) {
-        selected.push(this.hblReviews[i]);
-      }
-    }
-    return selected;
   }
 
   generateHbl(drafts: ReviewDraft[]) {
-    this.isGenerating = true;
-    this.cdr.detectChanges();
+    this.isGenerating.set(true);
     
-    // For demo purposes, we will just use the first draft to generate the PDF 
-    // and assign the same PDF to all of them, or just generate one and assign it.
-    // Assuming backend will handle merging.
-    this.extractionService.generateHbl(drafts[0]).subscribe(pdfUrl => {
+    this.extractionService.generateHbl(drafts[0]).subscribe((pdfUrl: string) => {
       drafts.forEach(draft => {
-        draft.hbl_pdf = pdfUrl;
-        draft.hbl_filename = `Merged-${drafts[0].hbl_number}-HBL.pdf`;
+        this.workflow.updateDraft(draft.draft_id, {
+          hbl_pdf: pdfUrl,
+          hbl_filename: `Merged-${drafts[0].hbl_number}-HBL.pdf`
+        });
       });
       
       this.toast.show(`Merged HBL Generated for ${drafts.length} packing list(s)`, 'success');
-      
+      this.isGenerating.set(false);
       this.checkMblReadiness();
-      this.isGenerating = false;
-      this.updateGroupedDrafts();
-      this.cdr.detectChanges();
     });
   }
 
-  canShowMbl(): boolean {
-    return this.hblReviews.length > 0 && this.hblReviews.every(r => !!r.hbl_pdf);
-  }
-
   checkMblReadiness() {
-    if (this.canShowMbl()) {
-      if (!this.mblReview) {
-        this.mblReview = {
+    if (this.workflow.canShowMbl()) {
+      if (!this.workflow.mblReview()) {
+        const drafts = this.workflow.hblReviews();
+        this.workflow.setMblReview({
           draft_id: Math.random().toString(36).substring(7),
-          draft_ids: this.hblReviews.map(r => r.draft_id),
-          details_confirmed: true, // Auto confirm for demo
+          draft_ids: drafts.map(r => r.draft_id),
+          details_confirmed: true,
           mbl_details: {
             mbl_number: 'MBL-' + Math.floor(Math.random() * 1000000),
             vessel_name: 'MSC MOCK',
@@ -168,233 +143,30 @@ export class AppComponent {
             shipper: { name: 'Shipper', address: 'Address', tax_id: null },
             consignee: { name: 'Consignee', address: 'Address', tax_id: null },
             cargo_description: 'Mock Cargo',
-            total_packages: '50',
+            total_packages: '100',
             total_gross_weight: '15000 kg',
-            total_measurement: '35 CBM'
+            total_measurement: '20 CBM'
           }
-        };
+        });
       }
-      this.currentStep = 2;
+      this.workflow.setCurrentStep(2);
     }
   }
 
   generateMbl() {
-    if (this.mblReview) {
-      this.isGenerating = true;
-      this.cdr.detectChanges();
-      // Using the same blank pdf service call for demo
-      this.extractionService.generateHbl(this.hblReviews[0]).subscribe(pdfUrl => {
-        this.mblReview!.mbl_pdf = pdfUrl;
-        this.mblReview!.mbl_filename = `${this.mblReview!.mbl_details.mbl_number}-MBL.pdf`;
+    const mblReview = this.workflow.mblReview();
+    if (mblReview) {
+      this.isGenerating.set(true);
+      
+      this.extractionService.generateHbl(this.workflow.hblReviews()[0]).subscribe((pdfUrl: string) => {
+        this.workflow.setMblReview({
+          ...mblReview,
+          mbl_pdf: pdfUrl,
+          mbl_filename: `${mblReview.mbl_details.mbl_number}-MBL.pdf`
+        });
         this.toast.show('MBL Generated Successfully', 'success');
-        this.isGenerating = false;
-        this.cdr.detectChanges();
+        this.isGenerating.set(false);
       });
     }
-  }
-
-  clearResults() {
-    this.hblReviews = [];
-    this.mblReview = null;
-    this.selectedDraftIndices = new Set<number>([0]);
-    this.currentStep = 1;
-    this.groupColors = {};
-    if (this.uploaderComponent) {
-      this.uploaderComponent.clearAll();
-    }
-    this.updateGroupedDrafts();
-    this.cdr.detectChanges();
-  }
-
-  clearSuggestions() {
-    this.groupColors = {};
-    this.hblReviews.forEach(draft => {
-      draft.group_id = 'single_' + Math.random().toString(36).substring(7);
-      draft.details_confirmed = false;
-      draft.hbl_details = {
-        hbl_number: null,
-        notify_party: JSON.parse(JSON.stringify(draft.packing_list.notify_party || { name: null, address: null, tax_id: null })),
-        container_number: draft.packing_list.containers?.[0]?.container_number || null,
-        seal_number: draft.packing_list.containers?.[0]?.seal_numbers?.[0] || null,
-        freight_terms: draft.packing_list.freight_terms
-      };
-      delete draft.hbl_number;
-      delete draft.hbl_pdf;
-      delete draft.hbl_filename;
-    });
-    this.mblReview = null;
-    this.currentStep = 1;
-    this.selectedDraftIndices = new Set(this.hblReviews.map((_, i) => i));
-    this.toast.show('Suggestion groups cleared', 'info');
-    this.updateGroupedDrafts();
-    this.cdr.detectChanges();
-  }
-
-  addGroup() {
-    const nextIndex = Object.keys(this.groupColors).length;
-    const newGroupId = 'group_' + Math.random().toString(36).substring(7);
-    this.groupColors[newGroupId] = this.availableColors[nextIndex % this.availableColors.length];
-    this.updateGroupedDrafts();
-  }
-
-  isDraftSelected(index: number): boolean {
-    return this.selectedDraftIndices.has(index);
-  }
-
-  getGroupStyle(review: ReviewDraft, index: number): { [key: string]: string } | null {
-    const style: { [key: string]: string } = {};
-    const groupId = review.group_id;
-    const gColor = (groupId && this.groupColors[groupId]) ? this.groupColors[groupId] : null;
-
-    if (gColor) {
-      style['border-left'] = `4px solid ${gColor}`;
-    }
-    
-    return Object.keys(style).length > 0 ? style : null;
-  }
-
-  hasGroupColors(): boolean {
-    return Object.keys(this.groupColors).length > 0;
-  }
-
-  // Drag and drop state
-  draggedDraftIndex: number | null = null;
-
-  onDragStart(event: DragEvent, index: number) {
-    const draft = this.hblReviews[index];
-    if (this.isGroupSaved(draft.group_id)) {
-      event.preventDefault();
-      return;
-    }
-    this.draggedDraftIndex = index;
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', index.toString());
-    }
-  }
-
-  isGroupSaved(groupId: string | null | undefined): boolean {
-    if (!groupId) return false;
-    return this.hblReviews.some(d => d.group_id === groupId && d.details_confirmed);
-  }
-
-  onDragOver(event: DragEvent, groupId: string | null = null) {
-    if (this.isGroupSaved(groupId)) {
-      return; // Do not prevent default; browser will block drop
-    }
-    event.preventDefault();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'move';
-    }
-  }
-
-  onDrop(event: DragEvent, targetGroupId: string | null) {
-    if (this.isGroupSaved(targetGroupId)) return; // Prevent drops into saved groups
-    
-    event.preventDefault();
-    if (this.draggedDraftIndex !== null) {
-      const draft = this.hblReviews[this.draggedDraftIndex];
-      const oldGroupId = draft.group_id;
-
-      if (targetGroupId !== null) {
-        draft.group_id = targetGroupId;
-      } else {
-        draft.group_id = 'single_' + Math.random().toString(36).substring(7);
-      }
-
-      if (oldGroupId && this.groupColors[oldGroupId] && oldGroupId !== targetGroupId) {
-        const hasRemaining = this.hblReviews.some(d => d.group_id === oldGroupId);
-        if (!hasRemaining) {
-          delete this.groupColors[oldGroupId];
-        }
-      }
-
-      this.updateGroupedDrafts();
-      this.draggedDraftIndex = null;
-    }
-  }
-
-  removeGroup(groupId: string | null) {
-    if (!groupId) return;
-    this.hblReviews.forEach(draft => {
-      if (draft.group_id === groupId) {
-        draft.group_id = 'single_' + Math.random().toString(36).substring(7);
-      }
-    });
-    delete this.groupColors[groupId];
-    this.updateGroupedDrafts();
-  }
-
-  groupedSelectedDrafts: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
-  groupedAllDrafts: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
-  ungroupedDrafts: ReviewDraft[] = [];
-
-  getDraftIndex(draft: ReviewDraft): number {
-    return this.hblReviews.indexOf(draft);
-  }
-
-  updateGroupedDrafts() {
-    // 1. Compute groupedAllDrafts for the drag-and-drop tree zones (shows everything)
-    const allGroupsMap = new Map<string, ReviewDraft[]>();
-    this.ungroupedDrafts = [];
-
-    this.hblReviews.forEach(draft => {
-       if (draft.group_id && this.groupColors[draft.group_id]) {
-           if (!allGroupsMap.has(draft.group_id)) {
-               allGroupsMap.set(draft.group_id, []);
-           }
-           allGroupsMap.get(draft.group_id)!.push(draft);
-       } else {
-           this.ungroupedDrafts.push(draft);
-       }
-    });
-
-    const allResult: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
-    Object.keys(this.groupColors).forEach(groupId => {
-       allResult.push({ 
-         groupId, 
-         color: this.groupColors[groupId], 
-         drafts: allGroupsMap.get(groupId) || [] 
-       });
-    });
-    this.groupedAllDrafts = allResult;
-
-    // 2. Compute groupedSelectedDrafts for the HBL Accordions below (shows only selected)
-    const selected = this.getSelectedDrafts();
-    if (selected.length === 0) {
-      this.groupedSelectedDrafts = [];
-      return;
-    }
-
-    const groupsMap = new Map<string, ReviewDraft[]>();
-    const singles: ReviewDraft[][] = [];
-
-    selected.forEach(draft => {
-       if (draft.group_id && this.groupColors[draft.group_id]) {
-           if (!groupsMap.has(draft.group_id)) {
-               groupsMap.set(draft.group_id, []);
-           }
-           groupsMap.get(draft.group_id)!.push(draft);
-       } else {
-           singles.push([draft]);
-       }
-    });
-
-    const result: { groupId: string | null, color: string | null, drafts: ReviewDraft[] }[] = [];
-    
-    // Only include groups that have selected drafts for the accordions
-    groupsMap.forEach((drafts, groupId) => {
-       result.push({ 
-         groupId, 
-         color: this.groupColors[groupId], 
-         drafts 
-       });
-    });
-
-    singles.forEach(drafts => {
-       result.push({ groupId: null, color: null, drafts });
-    });
-
-    this.groupedSelectedDrafts = result;
   }
 }

@@ -1,168 +1,86 @@
 <app-toast></app-toast>
-<div class="app-wrapper">
-  <!-- Header -->
-  <header class="header">
-    <div class="container" style="display: flex; align-items: center; gap: 24px; justify-content: center;">
+<div class="layout-container">
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="logo-container">
       <img src="avito.png" alt="Avito Logo" class="header-logo" />
       <div>
-        <h1 class="header-title">
-          <!-- <span class="header-icon">📄</span> -->
-          Packing Lists to Bills of Lading
-        </h1>
+        <h1 class="header-title">Packing Lists to Bills of Lading</h1>
         <p class="header-subtitle">Create HBLs from packing lists, then consolidate completed HBLs into a carrier MBL.</p>
       </div>
     </div>
   </header>
 
-  <main class="container main-layout">
-    <div class="left-panel" [class.full-width]="hblReviews.length === 0">
-      <app-uploader #uploader (filesSelected)="processFiles($event)"></app-uploader>
+  <main class="main-layout">
+    <!-- Left Column: Uploader -->
+    <div class="left-panel" [class.full-width]="workflow.hblReviews().length === 0">
+      <app-uploader 
+        (filesSelected)="processFiles($event)">
+      </app-uploader>
     </div>
 
-    <div class="right-panel" *ngIf="hblReviews.length > 0">
-      <!-- Stepper UI -->
-      <div class="card mb-6" style="display: flex; align-items: center; justify-content: flex-start; padding: 16px 24px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); gap: 16px; border: 1px solid #e2e8f0; background: white;">
+    <!-- Right Column: Wizard Steps -->
+    @if (workflow.hblReviews().length > 0) {
+      <div class="right-panel">
         
-        <!-- Step 1 -->
-        <div style="display: flex; align-items: center; gap: 12px; cursor: pointer; transition: opacity 0.2s;" (click)="currentStep = 1">
-          <div [ngStyle]="{
-            'background-color': currentStep === 1 ? '#f26d21' : '#f1f5f9',
-            'color': currentStep === 1 ? '#ffffff' : '#94a3b8',
-            'width': '32px', 'height': '32px', 'border-radius': '50%', 
-            'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 
-            'font-weight': '600', 'font-size': '14px'
-          }">1</div>
-          <div [ngStyle]="{
-            'font-weight': currentStep === 1 ? '600' : '500', 
-            'color': currentStep === 1 ? '#1a2b4c' : '#94a3b8',
-            'font-size': '15px'
-          }">Packing List & Complete HBL Details</div>
-        </div>
-
-        <!-- Divider -->
-        <div style="height: 1px; width: 64px; background-color: #e2e8f0; margin: 0 8px;"></div>
-
-        <!-- Step 2 -->
-        <div style="display: flex; align-items: center; gap: 12px; cursor: pointer; transition: opacity 0.2s;" (click)="canShowMbl() && (currentStep = 2)" [style.opacity]="canShowMbl() ? '1' : '0.6'">
-          <div [ngStyle]="{
-            'background-color': currentStep === 2 ? '#f26d21' : '#f1f5f9',
-            'color': currentStep === 2 ? '#ffffff' : '#94a3b8',
-            'width': '32px', 'height': '32px', 'border-radius': '50%', 
-            'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 
-            'font-weight': '600', 'font-size': '14px'
-          }">2</div>
-          <div [ngStyle]="{
-            'font-weight': currentStep === 2 ? '600' : '500', 
-            'color': currentStep === 2 ? '#1a2b4c' : '#94a3b8',
-            'font-size': '15px'
-          }">Complete MBL Details</div>
-        </div>
-      </div>
-
-      <!-- Step 1 Content -->
-      <div [style.display]="currentStep === 1 ? 'block' : 'none'">
-        <div class="card mb-6" style="padding: 0; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: none;">
-          <div class="accordion-header" (click)="isMultiSelectOpen = !isMultiSelectOpen" style="background: white; cursor: pointer; justify-content: space-between;">
-            <div style="font-weight: 500; color: #475569;">
-              Review Draft (Multi-select)
-            </div>
-            <div style="display: flex; gap: 12px; align-items: center;">
-              <button class="btn-outline clear-results-btn" style="padding: 4px 12px; font-size: 12px; color: #0284c7; border-color: #0284c7;" (click)="addGroup(); $event.stopPropagation()">+ Add Group</button>
-              <button class="btn-outline clear-results-btn" style="padding: 4px 12px; font-size: 12px;" (click)="clearSuggestions(); $event.stopPropagation()">Clear Suggestion Group</button>
-              <button class="btn-outline clear-results-btn" style="padding: 4px 12px; font-size: 12px;" (click)="clearResults(); $event.stopPropagation()">Clear All</button>
-              <svg style="width: 20px; height: 20px; transition: transform 0.2s; color: #64748b;" [class.rotate-180]="isMultiSelectOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
-          </div>
+        <!-- Wizard Progress Header -->
+        <div class="wizard-header">
           
-          <div *ngIf="isMultiSelectOpen" class="accordion-body" style="padding: 16px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
-              
-              <!-- Ungrouped Drop Zone -->
-              <div (dragover)="onDragOver($event)"
-                   (drop)="onDrop($event, null)"
-                   style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: 260px; display: flex; flex-direction: column; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <div style="font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 16px; text-align: center; flex-shrink: 0;">
-                  Ungrouped Files
-                </div>
-                
-                <div style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 4px;">
-                  <button *ngFor="let review of ungroupedDrafts"
-                          [attr.draggable]="isGroupSaved(review.group_id) ? null : 'true'"
-                          (dragstart)="onDragStart($event, getDraftIndex(review))"
-                          class="pill-btn"
-                          [style.cursor]="isGroupSaved(review.group_id) ? 'not-allowed' : 'grab'"
-                          [ngStyle]="getGroupStyle(review, getDraftIndex(review))">
-                    <span>{{ getDraftIndex(review) + 1 }}. {{ review.source_name }}</span>
-                    <span style="font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
-                  </button>
-                  <div *ngIf="ungroupedDrafts.length === 0" style="color: #94a3b8; font-size: 12px; font-style: italic; padding: 6px; text-align: center;">
-                    Drag PDFs here to ungroup
-                  </div>
-                </div>
-              </div>
+          <!-- Step 1 -->
+          <div class="wizard-step" (click)="workflow.setCurrentStep(1)">
+            <div class="wizard-step-number" [class.active]="workflow.currentStep() === 1">1</div>
+            <div class="wizard-step-title" [class.active]="workflow.currentStep() === 1">Packing List & Complete HBL Details</div>
+          </div>
 
-              <!-- Group Drop Zones -->
-              <div *ngFor="let group of groupedAllDrafts; let gIdx = index"
-                   (dragover)="onDragOver($event, group.groupId)"
-                   (drop)="onDrop($event, group.groupId)"
-                   style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: 260px; display: flex; flex-direction: column; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: opacity 0.3s;"
-                   [style.borderTop]="group.color ? '4px solid ' + group.color : '1px solid #e2e8f0'"
-                   [style.opacity]="isGroupSaved(group.groupId) ? '0.5' : '1'">
-                <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 16px; position: relative; flex-shrink: 0;">
-                  <div style="font-size: 14px; font-weight: 600; color: #475569;">
-                     Group {{ gIdx + 1 }} (Drop Zone)
-                  </div>
-                  <button *ngIf="group.color && !isGroupSaved(group.groupId)" class="btn-outline-danger" style="position: absolute; right: -8px; top: -8px; padding: 2px 8px; font-size: 11px; border: none; background: transparent; color: #ef4444; cursor: pointer;" (click)="removeGroup(group.groupId)">
-                    Remove
-                  </button>
-                </div>
-                
-                <div style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 4px;">
-                  <button *ngFor="let review of group.drafts"
-                          [attr.draggable]="isGroupSaved(group.groupId) ? null : 'true'"
-                          (dragstart)="onDragStart($event, getDraftIndex(review))"
-                          class="pill-btn"
-                          [style.cursor]="isGroupSaved(group.groupId) ? 'not-allowed' : 'grab'"
-                          [ngStyle]="getGroupStyle(review, getDraftIndex(review))">
-                    <span>{{ getDraftIndex(review) + 1 }}. {{ review.source_name }}</span>
-                    <span style="font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ review.details_confirmed ? 'Ready' : 'Draft' }}</span>
-                  </button>
-                  <div *ngIf="group.drafts.length === 0" style="color: #94a3b8; font-size: 12px; font-style: italic; padding: 6px; text-align: center;">
-                    Drag PDFs here
-                  </div>
-                </div>
-              </div>
+          <div class="wizard-step-divider"></div>
 
+          <!-- Step 2 -->
+          <div class="wizard-step" [class.disabled]="!workflow.canShowMbl()" (click)="workflow.canShowMbl() && workflow.setCurrentStep(2)">
+            <div class="wizard-step-number" [class.active]="workflow.currentStep() === 2">2</div>
+            <div class="wizard-step-title" [class.active]="workflow.currentStep() === 2">Complete MBL Details</div>
+          </div>
+        </div>
+
+        <!-- Step 1 Content -->
+        <div [class.hidden]="workflow.currentStep() !== 1">
+          <!-- The grouped drafts drop board -->
+          @if (workflow.hblReviews().length > 0) {
+            <app-grouping-board></app-grouping-board>
+          }
+
+          <!-- Dynamic HBL Forms per Group -->
+          @if (workflow.groupedSelectedDrafts().length > 0) {
+            <div>
+              @for (group of workflow.groupedSelectedDrafts(); track group.groupId) {
+                <app-hbl-draft 
+                  [drafts]="group.drafts"
+                  [groupColor]="group.color"
+                  [expanded]="false"
+                  (generateRequested)="generateHbl($event)"
+                ></app-hbl-draft>
+              }
             </div>
-          </div>
+          }
         </div>
 
-        <div class="review-content">
-          <div *ngIf="selectedDraftIndices.size > 0">
-            <app-hbl-draft 
-              *ngFor="let group of groupedSelectedDrafts"
-              [drafts]="group.drafts"
-              [groupColor]="group.color"
-              (generateRequested)="generateHbl($event)"
-            ></app-hbl-draft>
+        <!-- Step 2 Content -->
+        <div [class.hidden]="workflow.currentStep() !== 2">
+          <div class="review-content">
+            @if (workflow.canShowMbl() && workflow.mblReview()) {
+              @defer (when workflow.currentStep() === 2) {
+                <app-mbl-section 
+                  [reviews]="workflow.hblReviews()"
+                  [mblReview]="workflow.mblReview()!"
+                  (generateRequested)="generateMbl()"
+                ></app-mbl-section>
+              }
+            }
           </div>
         </div>
       </div>
-
-      <!-- Step 2 Content -->
-      <div [style.display]="currentStep === 2 ? 'block' : 'none'">
-        <div class="review-content">
-          <app-mbl-section 
-            *ngIf="canShowMbl() && mblReview"
-            [reviews]="hblReviews"
-            [mblReview]="mblReview"
-            (generateRequested)="generateMbl()"
-          ></app-mbl-section>
-        </div>
-      </div>
-    </div>
+    }
   </main>
-
-  <app-wifi-loader [show]="isExtracting" text="extracting"></app-wifi-loader>
-  <app-wifi-loader [show]="isGenerating" text="generating"></app-wifi-loader>
+  
+  <app-wifi-loader [show]="isExtracting()" text="extracting"></app-wifi-loader>
+  <app-wifi-loader [show]="isGenerating()" text="generating"></app-wifi-loader>
 </div>
