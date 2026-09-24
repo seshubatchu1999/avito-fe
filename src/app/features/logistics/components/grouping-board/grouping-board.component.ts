@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { WorkflowStateService } from '../../../../core/services/workflow-state.service';
@@ -15,6 +15,8 @@ import { ReviewDraft } from '../../../../core/models/schemas';
 export class GroupingBoardComponent {
   workflow = inject(WorkflowStateService);
   isMultiSelectOpen = false;
+  
+  @Output() docClicked = new EventEmitter<ReviewDraft>();
 
   drop(event: CdkDragDrop<any[]>, targetGroupId: string | null) {
     if (this.workflow.isGroupSaved(targetGroupId)) return;

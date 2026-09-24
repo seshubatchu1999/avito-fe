@@ -13,6 +13,8 @@ import { ToastComponent } from './shared/components/toast/toast.component';
 import { ReviewDraft } from './core/models/schemas';
 import { WorkflowStateService } from './core/services/workflow-state.service';
 
+import { DocumentModalComponent } from './shared/components/document-modal/document-modal.component';
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -24,7 +26,8 @@ import { WorkflowStateService } from './core/services/workflow-state.service';
     MblSectionComponent,
     GroupingBoardComponent,
     WifiLoaderComponent,
-    ToastComponent
+    ToastComponent,
+    DocumentModalComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.component.css'],
@@ -35,12 +38,26 @@ export class AppComponent {
 
   isExtracting = signal<boolean>(false);
   isGenerating = signal<boolean>(false);
+  
+  selectedDocUrl = signal<string | null>(null);
+  selectedDocName = signal<string>('');
+  selectedDocMime = signal<string>('');
 
   constructor(
     private toast: ToastService,
     private backendService: BackendApiService,
     private extractionService: DocumentExtractionService
   ) {}
+
+  viewDoc(draft: ReviewDraft) {
+    this.selectedDocUrl.set(draft.source_document || null);
+    this.selectedDocName.set(draft.source_name);
+    this.selectedDocMime.set(draft.mime_type);
+  }
+
+  closeDoc() {
+    this.selectedDocUrl.set(null);
+  }
 
   processFiles(files: File[]) {
     const existingNames = new Set(this.workflow.hblReviews().map(r => r.source_name));

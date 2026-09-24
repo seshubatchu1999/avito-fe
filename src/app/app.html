@@ -45,7 +45,7 @@
         <div [class.hidden]="workflow.currentStep() !== 1">
           <!-- The grouped drafts drop board -->
           @if (workflow.hblReviews().length > 0) {
-            <app-grouping-board></app-grouping-board>
+            <app-grouping-board (docClicked)="viewDoc($event)"></app-grouping-board>
           }
 
           <!-- Dynamic HBL Forms per Group -->
@@ -83,4 +83,14 @@
   
   <app-wifi-loader [show]="isExtracting()" text="extracting"></app-wifi-loader>
   <app-wifi-loader [show]="isGenerating()" text="generating"></app-wifi-loader>
+
+  @if (selectedDocUrl()) {
+    <app-document-modal 
+      [isOpen]="true" 
+      [title]="selectedDocName()" 
+      [documentUrl]="selectedDocUrl()!" 
+      [mimeType]="selectedDocMime()"
+      (closed)="closeDoc()">
+    </app-document-modal>
+  }
 </div>
