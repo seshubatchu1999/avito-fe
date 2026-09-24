@@ -57,7 +57,7 @@
                [class.is-saved]="workflow.isGroupSaved(group.groupId)">
             <div class="grouping-group-header">
               <div class="grouping-group-title">
-                 Group {{ gIdx + 1 }} (Drop Zone)
+                 Group {{ gIdx + 1 }}
               </div>
               @if (group.color && !workflow.isGroupSaved(group.groupId)) {
                 <button class="btn-outline-danger grouping-remove-btn" (click)="removeGroup(group.groupId!)">

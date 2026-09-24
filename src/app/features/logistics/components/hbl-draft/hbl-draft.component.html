@@ -5,7 +5,7 @@
         (click)="expanded = !expanded"
       >
         <div>
-          Merged HBL Draft ({{ drafts.length }} Packing List{{ drafts.length > 1 ? 's' : '' }}) &nbsp;|&nbsp; 
+          {{ groupTitle || 'Merged HBL Draft' }} ({{ drafts.length }} Packing List{{ drafts.length > 1 ? 's' : '' }}) &nbsp;|&nbsp; 
           <span [class.text-ready]="detailsConfirmed" [class.text-draft]="!detailsConfirmed">
             {{ detailsConfirmed ? 'Ready' : 'Draft' }}
           </span>
@@ -32,86 +32,92 @@
           }
           
           <form #hblForm="ngForm" (ngSubmit)="saveDetails(hblForm)" [class.form-submitted]="hblForm.submitted">
-            <div class="grid grid-cols-2 gap-8">
+            <div>
+              <!-- Shipment Details -->
+              <div class="mb-8">
+                <h4 class="mb-4 pb-2 border-b">Shipment Details</h4>
+                <div class="grid grid-cols-4 gap-4">
+                  <div class="mb-4">
+                    <label class="form-label">HBL Number *</label>
+                    <div class="input-group">
+                      <span class="input-group-text">#</span>
+                      <input type="text" name="hblNumber" [(ngModel)]="formData.hbl_number" required #hblNumber="ngModel"
+                        class="form-input group-input" [class.is-invalid]="hblNumber.invalid && (hblNumber.touched || hblForm.submitted)" [disabled]="isLocked">
+                    </div>
+                    <div class="error-text" [style.visibility]="hblNumber.invalid && (hblNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">HBL Number is required</div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="form-label">Container Number *</label>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                      </span>
+                      <input type="text" name="containerNumber" [(ngModel)]="formData.container_number" required #containerNumber="ngModel"
+                        class="form-input group-input" [class.is-invalid]="containerNumber.invalid && (containerNumber.touched || hblForm.submitted)" [disabled]="isLocked">
+                    </div>
+                    <div class="error-text" [style.visibility]="containerNumber.invalid && (containerNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">Container Number is required</div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="form-label">Seal Number *</label>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      </span>
+                      <input type="text" name="sealNumber" [(ngModel)]="formData.seal_number" required #sealNumber="ngModel"
+                        class="form-input group-input" [class.is-invalid]="sealNumber.invalid && (sealNumber.touched || hblForm.submitted)" [disabled]="isLocked">
+                    </div>
+                    <div class="error-text" [style.visibility]="sealNumber.invalid && (sealNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">Seal Number is required</div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="form-label">Freight Terms *</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <select name="freightTerms" [(ngModel)]="formData.freight_terms" required #freightTerms="ngModel"
+                        class="form-input group-input" [class.is-invalid]="freightTerms.invalid && (freightTerms.touched || hblForm.submitted)" [disabled]="isLocked">
+                        <option value="" disabled>Select</option>
+                        <option value="Prepaid">Prepaid</option>
+                        <option value="Collect">Collect</option>
+                      </select>
+                    </div>
+                    <div class="error-text" [style.visibility]="freightTerms.invalid && (freightTerms.touched || hblForm.submitted) ? 'visible' : 'hidden'">Freight Terms is required</div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Notify Party -->
               <div>
                 <h4 class="mb-4 pb-2 border-b">Notify Party</h4>
-                
-                <div class="mb-4">
-                  <label class="form-label">Name *</label>
-                  <input type="text" name="notifyName" [(ngModel)]="formData.notify_party.name" required #notifyName="ngModel"
-                    class="form-input" [class.is-invalid]="notifyName.invalid" [disabled]="isLocked">
-                  <div class="error-text">Name is required</div>
-                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="mb-4">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="notifyName" [(ngModel)]="formData.notify_party.name" required #notifyName="ngModel"
+                      class="form-input" [class.is-invalid]="notifyName.invalid && (notifyName.touched || hblForm.submitted)" [disabled]="isLocked">
+                    <div class="error-text" [style.visibility]="notifyName.invalid && (notifyName.touched || hblForm.submitted) ? 'visible' : 'hidden'">Name is required</div>
+                  </div>
 
-                <div class="mb-4">
-                  <label class="form-label">Tax / Registration ID</label>
-                  <input type="text" name="notifyTax" [(ngModel)]="formData.notify_party.tax_id" class="form-input" [disabled]="isLocked">
+                  <div class="mb-4">
+                    <label class="form-label">Tax / Registration ID</label>
+                    <input type="text" name="notifyTax" [(ngModel)]="formData.notify_party.tax_id" class="form-input" [disabled]="isLocked">
+                  </div>
                 </div>
 
                 <div class="mb-4">
                   <label class="form-label">Address *</label>
                   <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="3" 
-                    class="form-input" [class.is-invalid]="notifyAddress.invalid" [disabled]="isLocked"></textarea>
-                  <div class="error-text">Address is required</div>
-                </div>
-              </div>
-
-              <!-- Shipment Details -->
-              <div>
-                <h4 class="mb-4 pb-2 border-b">Shipment Details</h4>
-                
-                <div class="mb-4">
-                  <label class="form-label">HBL Number *</label>
-                  <input type="text" name="hblNumber" [(ngModel)]="formData.hbl_number" required #hblNumber="ngModel"
-                    class="form-input" [class.is-invalid]="hblNumber.invalid" [disabled]="isLocked">
-                  <div class="error-text">HBL Number is required</div>
-                </div>
-
-                <div class="mb-4">
-                  <label class="form-label">Container Number *</label>
-                  <input type="text" name="containerNumber" [(ngModel)]="formData.container_number" required #containerNumber="ngModel"
-                    class="form-input" [class.is-invalid]="containerNumber.invalid" [disabled]="isLocked">
-                  <div class="error-text">Container Number is required</div>
-                </div>
-
-                <div class="mb-4">
-                  <label class="form-label">Seal Number *</label>
-                  <input type="text" name="sealNumber" [(ngModel)]="formData.seal_number" required #sealNumber="ngModel"
-                    class="form-input" [class.is-invalid]="sealNumber.invalid" [disabled]="isLocked">
-                  <div class="error-text">Seal Number is required</div>
-                </div>
-
-                <div class="mb-4">
-                  <label class="form-label">Freight Terms *</label>
-                  <select name="freightTerms" [(ngModel)]="formData.freight_terms" required #freightTerms="ngModel"
-                    class="form-input" [class.is-invalid]="freightTerms.invalid" [disabled]="isLocked">
-                    <option value="" disabled>Select</option>
-                    <option value="Prepaid">Prepaid</option>
-                    <option value="Collect">Collect</option>
-                  </select>
-                  <div class="error-text">Freight Terms is required</div>
+                    class="form-input" [class.is-invalid]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted)" [disabled]="isLocked"></textarea>
+                  <div class="error-text" [style.visibility]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted) ? 'visible' : 'hidden'">Address is required</div>
                 </div>
               </div>
             </div>
 
             <div class="mt-6 flex gap-4 form-actions-container">
               @if (!isLocked) {
-                <button type="submit" class="btn-primary">Save HBL Details</button>
-                <button type="button" class="btn-primary btn-generate-pdf" [disabled]="!detailsConfirmed" (click)="generateHbl()">Generate Final HBL PDF</button>
+                <button type="submit" class="btn-primary">Save HBL Details and Generate Final HBL</button>
               }
             </div>
-            
-            @if (hblForm.submitted && hblForm.invalid && !detailsConfirmed) {
-              <div class="alert-error mt-4">
-                Please complete all required fields.
-              </div>
-            }
-            @if (detailsConfirmed && !isLocked) {
-              <div class="alert-success mt-4">
-                Required HBL details saved. This draft is ready for final generation.
-              </div>
-            }
           </form>
 
           <!-- Generated HBLs -->

@@ -135,7 +135,7 @@ export class AppComponent {
         });
       });
       
-      this.toast.show(`Merged HBL Generated for ${drafts.length} packing list(s)`, 'success');
+      this.toast.show('Final HBL generated. Saved HBL details are locked.', 'success');
       this.isGenerating.set(false);
       this.checkMblReadiness();
     });

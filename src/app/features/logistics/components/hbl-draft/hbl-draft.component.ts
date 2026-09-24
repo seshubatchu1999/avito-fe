@@ -20,6 +20,7 @@ export class HblDraftComponent {
   @Input() drafts: ReviewDraft[] = [];
   @Input() expanded = false;
   @Input() groupColor: string | null = null;
+  @Input() groupTitle?: string;
   
   @Output() generateRequested = new EventEmitter<ReviewDraft[]>();
   
@@ -83,6 +84,9 @@ export class HblDraftComponent {
       });
     });
     this.toast.show('HBL Details Saved successfully for selected packing lists', 'success');
+    
+    // Automatically trigger generation since the button was clicked
+    this.generateHbl();
   }
 
   generateHbl() {
