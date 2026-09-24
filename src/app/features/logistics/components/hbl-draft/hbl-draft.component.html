@@ -34,10 +34,10 @@
           <form #hblForm="ngForm" (ngSubmit)="saveDetails(hblForm)" [class.form-submitted]="hblForm.submitted">
             <div>
               <!-- Shipment Details -->
-              <div class="mb-8">
+              <div class="">
                 <h4 class="mb-4 pb-2 border-b">Shipment Details</h4>
                 <div class="grid grid-cols-4 gap-4">
-                  <div class="mb-4">
+                  <div class="">
                     <label class="form-label">HBL Number *</label>
                     <div class="input-group">
                       <span class="input-group-text">#</span>
@@ -49,7 +49,7 @@
                     </div>
                   </div>
 
-                  <div class="mb-4">
+                  <div class="">
                     <label class="form-label">Container Number *</label>
                     <div class="input-group">
                       <span class="input-group-text">
@@ -61,7 +61,7 @@
                     <div class="error-text" [style.visibility]="containerNumber.invalid && (containerNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">Container Number is required</div>
                   </div>
 
-                  <div class="mb-4">
+                  <div class="">
                     <label class="form-label">Seal Number *</label>
                     <div class="input-group">
                       <span class="input-group-text">
@@ -73,7 +73,7 @@
                     <div class="error-text" [style.visibility]="sealNumber.invalid && (sealNumber.touched || hblForm.submitted) ? 'visible' : 'hidden'">Seal Number is required</div>
                   </div>
 
-                  <div class="mb-4">
+                  <div class="">
                     <label class="form-label">Freight Terms *</label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
@@ -92,30 +92,31 @@
               <!-- Notify Party -->
               <div>
                 <h4 class="mb-4 pb-2 border-b">Notify Party</h4>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="mb-4">
+                <div class="grid grid-cols-4 gap-4">
+                  <div class="">
                     <label class="form-label">Name *</label>
                     <input type="text" name="notifyName" [(ngModel)]="formData.notify_party.name" required #notifyName="ngModel"
                       class="form-input" [class.is-invalid]="notifyName.invalid && (notifyName.touched || hblForm.submitted)" [disabled]="isLocked">
                     <div class="error-text" [style.visibility]="notifyName.invalid && (notifyName.touched || hblForm.submitted) ? 'visible' : 'hidden'">Name is required</div>
                   </div>
 
-                  <div class="mb-4">
+                  <div class="">
                     <label class="form-label">Tax / Registration ID</label>
                     <input type="text" name="notifyTax" [(ngModel)]="formData.notify_party.tax_id" class="form-input" [disabled]="isLocked">
                   </div>
-                </div>
-
-                <div class="mb-4">
+ 
+                  <div class="">
                   <label class="form-label">Address *</label>
                   <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="3" 
                     class="form-input" [class.is-invalid]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted)" [disabled]="isLocked"></textarea>
                   <div class="error-text" [style.visibility]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted) ? 'visible' : 'hidden'">Address is required</div>
                 </div>
+
+                </div>
               </div>
             </div>
 
-            <div class="mt-6 flex gap-4 form-actions-container">
+            <div class="flex form-actions-container">
               @if (!isLocked) {
                 <button type="submit" class="btn-primary">Save HBL Details and Generate Final HBL</button>
               }
