@@ -98,11 +98,16 @@ export class GroupingBoardComponent {
       this.localGroupOverrides.update(overrides => {
         return { ...overrides, [movedDraft.draft_id]: targetGroupId };
       });
+      
+      // Automatically update groups after drop
+      this.updateGroups();
     }
   }
 
-  updateGroups(event: Event) {
-    event.stopPropagation();
+  updateGroups(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     const drafts = this.workflow.hblReviews();
     const overrides = this.localGroupOverrides();
     const groupedPayloads: Record<string, any> = {};
