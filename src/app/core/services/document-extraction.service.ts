@@ -1,11 +1,13 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, delay, of, map } from 'rxjs';
 import { PackingList, Party, ReviewDraft } from '../models/schemas';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentExtractionService {
+  private http = inject(HttpClient);
   
   extractPackingList(file: File): Observable<PackingList> {
     const mockPackingList: PackingList = {
@@ -42,6 +44,20 @@ export class DocumentExtractionService {
 
   generateHbl(draft: ReviewDraft): Observable<string> {
     const blankPdf = 'data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUuMjggODQxLjg5XQo+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjIxMwolJUVPRgo=';
-    return of(blankPdf).pipe(delay(1000));
+    return of(blankPdf).pipe(delay(1500));
+  }
+
+  generateMbl(mblReview: any): Observable<string> {
+    console.log(`[Mock API Request] POST /api/mbl/generate`);
+    console.log(`Payload:`, { mblDetails: mblReview.mbl_details, includedHbls: mblReview.draft_ids });
+    
+    // Simulating an API call that returns a base64 string
+    return this.http.get<{filename: string, base64: string}>('/mbl_preview.json').pipe(
+      delay(2000), // simulate network delay
+      map(response => {
+        // Prepend the data URI scheme so the browser can render the PDF base64
+        return 'data:application/pdf;base64,' + response.base64;
+      })
+    );
   }
 }

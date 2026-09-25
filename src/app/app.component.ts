@@ -201,11 +201,11 @@ console.log(groupId,'grpid')
     if (mblReview) {
       this.isGenerating.set(true);
       
-      this.extractionService.generateHbl(this.workflow.hblReviews()[0]).subscribe((pdfUrl: string) => {
+      this.extractionService.generateMbl(mblReview).subscribe((pdfBase64: string) => {
         this.workflow.setMblReview({
           ...mblReview,
-          mbl_pdf: pdfUrl,
-          mbl_filename: `${mblReview.mbl_details.mbl_number}-MBL.pdf`
+          mbl_pdf: pdfBase64,
+          mbl_filename: `${mblReview.mbl_number || mblReview.mbl_details.mbl_number}-MBL.pdf`
         });
         this.toast.show('MBL Generated Successfully', 'success');
         this.isGenerating.set(false);
