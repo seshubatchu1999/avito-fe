@@ -4,7 +4,7 @@
 
   <main class="main-layout">
     <!-- Left Column: Uploader -->
-    <div class="left-panel" [class.full-width]="workflow.hblReviews().length === 0">
+    <div class="left-panel">
       <header class="app-header">
         <div class="logo-container">
           <img src="avito.png" alt="Avito Logo" class="header-logo" />
@@ -21,66 +21,62 @@
     </div>
 
     <!-- Right Column: Wizard Steps -->
-    @if (workflow.hblReviews().length > 0) {
-      <div class="right-panel">
+    <div class="right-panel" [class.panel-disabled]="workflow.hblReviews().length === 0">
+      
+      <!-- Wizard Progress Header -->
+      <div class="wizard-header">
         
-        <!-- Wizard Progress Header -->
-        <div class="wizard-header">
-          
-          <!-- Step 1 -->
-          <div class="wizard-step" (click)="workflow.setCurrentStep(1)">
-            <div class="wizard-step-number" [class.active]="workflow.currentStep() === 1">1</div>
-            <div class="wizard-step-title" [class.active]="workflow.currentStep() === 1">Packing List & Complete HBL Details</div>
-          </div>
-
-          <div class="wizard-step-divider"></div>
-
-          <!-- Step 2 -->
-          <div class="wizard-step" [class.disabled]="!workflow.canShowMbl()" (click)="workflow.canShowMbl() && workflow.setCurrentStep(2)">
-            <div class="wizard-step-number" [class.active]="workflow.currentStep() === 2">2</div>
-            <div class="wizard-step-title" [class.active]="workflow.currentStep() === 2">Complete MBL Details</div>
-          </div>
+        <!-- Step 1 -->
+        <div class="wizard-step" (click)="workflow.setCurrentStep(1)">
+          <div class="wizard-step-number" [class.active]="workflow.currentStep() === 1">1</div>
+          <div class="wizard-step-title" [class.active]="workflow.currentStep() === 1">Packing List & Complete HBL Details</div>
         </div>
 
-        <!-- Step 1 Content -->
-        <div [class.hidden]="workflow.currentStep() !== 1">
-          <!-- The grouped drafts drop board -->
-          @if (workflow.hblReviews().length > 0) {
-            <app-grouping-board (docClicked)="viewDoc($event)"></app-grouping-board>
-          }
+        <div class="wizard-step-divider"></div>
 
-          <!-- Dynamic HBL Forms per Group -->
-          @if (workflow.groupedSelectedDrafts().length > 0) {
-            <div>
-              @for (group of workflow.groupedSelectedDrafts(); track group.groupId; let gIdx = $index) {
-                <app-hbl-draft 
-                  [drafts]="group.drafts"
-                  [groupColor]="group.color"
-                  [groupTitle]="group.color ? 'Group ' + (gIdx + 1) : 'Ungrouped File'"
-                  [expanded]="false"
-                  (generateRequested)="generateHbl($event)"
-                ></app-hbl-draft>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Step 2 Content -->
-        <div [class.hidden]="workflow.currentStep() !== 2">
-          <div class="review-content">
-            @if (workflow.canShowMbl() && workflow.mblReview()) {
-              @defer (when workflow.currentStep() === 2) {
-                <app-mbl-section 
-                  [reviews]="workflow.hblReviews()"
-                  [mblReview]="workflow.mblReview()!"
-                  (generateRequested)="generateMbl()"
-                ></app-mbl-section>
-              }
-            }
-          </div>
+        <!-- Step 2 -->
+        <div class="wizard-step" [class.disabled]="!workflow.canShowMbl()" (click)="workflow.canShowMbl() && workflow.setCurrentStep(2)">
+          <div class="wizard-step-number" [class.active]="workflow.currentStep() === 2">2</div>
+          <div class="wizard-step-title" [class.active]="workflow.currentStep() === 2">Complete MBL Details</div>
         </div>
       </div>
-    }
+
+      <!-- Step 1 Content -->
+      <div [class.hidden]="workflow.currentStep() !== 1">
+        <!-- The grouped drafts drop board -->
+        <app-grouping-board (docClicked)="viewDoc($event)"></app-grouping-board>
+
+        <!-- Dynamic HBL Forms per Group -->
+        @if (workflow.groupedSelectedDrafts().length > 0) {
+          <div>
+            @for (group of workflow.groupedSelectedDrafts(); track group.groupId; let gIdx = $index) {
+              <app-hbl-draft 
+                [drafts]="group.drafts"
+                [groupColor]="group.color"
+                [groupTitle]="group.color ? 'Group ' + (gIdx + 1) : 'Ungrouped File'"
+                [expanded]="false"
+                (generateRequested)="generateHbl($event)"
+              ></app-hbl-draft>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Step 2 Content -->
+      <div [class.hidden]="workflow.currentStep() !== 2">
+        <div class="review-content">
+          @if (workflow.canShowMbl() && workflow.mblReview()) {
+            @defer (when workflow.currentStep() === 2) {
+              <app-mbl-section 
+                [reviews]="workflow.hblReviews()"
+                [mblReview]="workflow.mblReview()!"
+                (generateRequested)="generateMbl()"
+              ></app-mbl-section>
+            }
+          }
+        </div>
+      </div>
+    </div>
   </main>
   
   <app-wifi-loader [show]="isExtracting()" text="extracting"></app-wifi-loader>

@@ -120,4 +120,82 @@ export class HblDraftComponent {
   get detailsConfirmed(): boolean {
     return this.drafts.every(d => d.details_confirmed);
   }
+
+  sortColumn: 'key' | 'value' = 'key';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  toggleSort(column: 'key' | 'value') {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  getExtractedData(): { key: string, value: string }[] {
+    if (!this.primaryDraft?.packing_list) return [];
+    const pl = this.primaryDraft.packing_list as any;
+    const result: { key: string, value: string }[] = [];
+
+    const allowedKeys = [
+      'invoice_number',
+      'notify_party',
+      'country_of_origin',
+      'country_of_final_destination',
+      'total_gross_weight',
+      'total_package_count',
+      'total_net_weight',
+      'quantity',
+      'package_numbers',
+      'net_weight'
+    ];
+
+    const pushItem = (k: string, v: any) => {
+      const formattedKey = this.formatKey(k);
+      if (result.some(r => r.key === formattedKey)) return;
+      const val = (v === null || v === undefined || v === '') ? '--' : String(v);
+      result.push({ key: formattedKey, value: val });
+    };
+
+    const processValue = (prefix: string, leafKey: string, val: any) => {
+      if (Array.isArray(val)) {
+        if (val.length > 0 && typeof val[0] !== 'object') {
+          if (allowedKeys.includes(leafKey) || leafKey.endsWith('_date')) {
+            pushItem(leafKey, val.join(', '));
+          }
+        } else {
+          val.forEach((item, index) => {
+            if (item && typeof item === 'object') {
+              for (const k of Object.keys(item)) {
+                processValue(`${prefix}_${index + 1}_${k}`, k, item[k]);
+              }
+            }
+          });
+        }
+      } else if (val && typeof val === 'object') {
+        if (allowedKeys.includes(leafKey) || leafKey.endsWith('_date')) {
+          pushItem(leafKey, val.name || '--');
+        }
+      } else {
+        if (allowedKeys.includes(leafKey) || leafKey.endsWith('_date')) {
+          pushItem(leafKey, val);
+        }
+      }
+    };
+
+    for (const key of Object.keys(pl)) {
+      processValue(key, key, pl[key]);
+    }
+
+    return result;
+  }
+
+  formatKey(key: string): string {
+    return key
+      .split(/[ _]/)
+      .filter(w => w.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
 }

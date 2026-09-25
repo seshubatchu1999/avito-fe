@@ -148,3 +148,4 @@
   align-items: center;
   gap: 8px;
 }
+.panel-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); transition: all 0.3s ease; }

@@ -92,30 +92,47 @@
               <!-- Notify Party -->
               <div>
                 <h4 class="mb-4 pb-2 border-b">Notify Party</h4>
-                <div class="grid grid-cols-4 gap-4">
-                  <div class="">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
                     <label class="form-label">Name *</label>
                     <input type="text" name="notifyName" [(ngModel)]="formData.notify_party.name" required #notifyName="ngModel"
                       class="form-input" [class.is-invalid]="notifyName.invalid && (notifyName.touched || hblForm.submitted)" [disabled]="isLocked">
                     <div class="error-text" [style.visibility]="notifyName.invalid && (notifyName.touched || hblForm.submitted) ? 'visible' : 'hidden'">Name is required</div>
-                  </div>
 
-                  <div class="">
                     <label class="form-label">Tax / Registration ID</label>
                     <input type="text" name="notifyTax" [(ngModel)]="formData.notify_party.tax_id" class="form-input" [disabled]="isLocked">
                   </div>
- 
-                  <div class="">
-                  <label class="form-label">Address *</label>
-                  <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="3" 
-                    class="form-input" [class.is-invalid]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted)" [disabled]="isLocked"></textarea>
-                  <div class="error-text" [style.visibility]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted) ? 'visible' : 'hidden'">Address is required</div>
-                </div>
+                  <div>
 
+                    <label class="form-label">Address *</label>
+                  <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="6"
+                    class="form-input" style="resize: none;" [class.is-invalid]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted)" [disabled]="isLocked"></textarea>
+                  <div class="error-text" [style.visibility]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted) ? 'visible' : 'hidden'">Address is required</div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            <!-- Extracted Data Table -->
+            <div class="mb-8">
+              <details class="extracted-data-accordion group" open>
+                <summary class="accordion-header extracted-data-header" style="cursor: pointer; padding: 12px 16px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                  <span style="color: #0f172a; font-size: 16px;">Extracted Data from PDF</span>
+                  <svg class="w-5 h-5 text-gray-500 transition-transform duration-200 group-open:rotate-180" style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="rounded mt-2" style="background: #fff; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px 16px; padding: 32px 24px;">
+                  @for (item of getExtractedData(); track $index) {
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                      <span style="font-weight: 600; color: #003366; font-size: 14px; margin-bottom: 8px;">{{ item.key }}</span>
+                      <span style="color: #003366; font-size: 14px;">{{ item.value }}</span>
+                    </div>
+                  }
+                  @if (getExtractedData().length === 0) {
+                    <div class="w-full text-center p-6 text-gray-500" style="grid-column: 1 / -1;">No data extracted.</div>
+                  }
+                </div>
+              </details>
+            </div>
             <div class="flex form-actions-container">
               @if (!isLocked) {
                 <button type="submit" class="btn-primary">Save HBL Details and Generate Final HBL</button>
