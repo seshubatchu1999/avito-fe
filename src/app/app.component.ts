@@ -135,17 +135,35 @@ console.log(groupId,'grpid')
   generateHbl(drafts: ReviewDraft[]) {
     this.isGenerating.set(true);
     
-    this.extractionService.generateHbl(drafts[0]).subscribe((pdfUrl: string) => {
-      drafts.forEach(draft => {
-        this.workflow.updateDraft(draft.draft_id, {
-          hbl_pdf: pdfUrl,
-          hbl_filename: `Merged-${drafts[0].hbl_number}-HBL.pdf`
-        });
-      });
-      
-      this.toast.show('Final HBL generated. Saved HBL details are locked.', 'success');
-      this.isGenerating.set(false);
-      this.checkMblReadiness();
+    const freshDraft = this.workflow.hblReviews().find(d => d.draft_id === drafts[0].draft_id) || drafts[0];
+
+    const payload = {
+      batch_id: this.workflow.batchId(),
+      group_id: freshDraft.group_id,
+      manual_details: freshDraft.hbl_details
+    };
+
+    this.backendService.generateHbl(payload).subscribe({
+      next: (res: any) => {
+        if (res && res.pdf_url) {
+          drafts.forEach(draft => {
+            this.workflow.updateDraft(draft.draft_id, {
+              hbl_pdf: res.pdf_url,
+              hbl_filename: `Merged-${freshDraft.hbl_number || 'draft'}-HBL.pdf`
+            });
+          });
+          this.toast.show('Final HBL generated. Saved HBL details are locked.', 'success');
+          this.checkMblReadiness();
+        } else {
+          console.error('generateHbl response did not contain pdf_url', res);
+        }
+        this.isGenerating.set(false);
+      },
+      error: (err) => {
+        console.error('Error generating HBL:', err);
+        this.toast.show('Failed to generate HBL', 'error');
+        this.isGenerating.set(false);
+      }
     });
   }
 

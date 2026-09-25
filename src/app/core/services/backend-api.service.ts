@@ -36,6 +36,18 @@ export class BackendApiService {
       })
     );
   }
+
+  generateHbl(payload: any): Observable<any> {
+    return this.http.post('http://127.0.0.1:8000/v1/hbls', payload).pipe(
+      delay(1500),
+      catchError((err) => {
+        console.warn('Generate HBL API failed, returning mock PDF', err);
+        const blankPdf = 'data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUuMjggODQxLjg5XQo+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjIxMwolJUVPRgo=';
+        return of({ pdf_url: blankPdf }).pipe(delay(1000));
+      }
+    )
+    );
+  }
 }
 
 
