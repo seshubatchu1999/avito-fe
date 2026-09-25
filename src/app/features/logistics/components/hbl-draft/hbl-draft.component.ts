@@ -120,4 +120,45 @@ export class HblDraftComponent {
   get detailsConfirmed(): boolean {
     return this.drafts.every(d => d.details_confirmed);
   }
+
+  sortColumn: 'key' | 'value' = 'key';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  toggleSort(column: 'key' | 'value') {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  getExtractedData(): { key: string, value: string }[] {
+    if (!this.primaryDraft?.packing_list) return [];
+    const pl = this.primaryDraft.packing_list as any;
+    const result = [];
+    for (const key of Object.keys(pl)) {
+      const val = pl[key];
+      if (key !== 'items' && key !== 'containers' && val && typeof val !== 'object') {
+        result.push({
+          key: this.formatKey(key),
+          value: String(val)
+        });
+      }
+    }
+
+    result.sort((a, b) => {
+      const valA = a[this.sortColumn].toLowerCase();
+      const valB = b[this.sortColumn].toLowerCase();
+      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }
+
+  formatKey(key: string): string {
+    return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
 }
