@@ -138,35 +138,28 @@ export class HblDraftComponent {
     const pl = this.primaryDraft.packing_list as any;
     const result: { key: string, value: string }[] = [];
 
-    const processValue = (prefix: string, val: any) => {
-      if (val === null || val === undefined || val === '') return;
-      if (Array.isArray(val)) {
-        if (val.length === 0) return;
-        if (typeof val[0] !== 'object') {
-          result.push({ key: this.formatKey(prefix), value: val.join(', ') });
-        } else {
-          val.forEach((item, index) => processValue(`${prefix} ${index + 1}`, item));
-        }
-      } else if (typeof val === 'object') {
-        for (const k of Object.keys(val)) {
-          processValue(`${prefix} ${k}`, val[k]);
-        }
-      } else {
-        result.push({ key: this.formatKey(prefix), value: String(val) });
-      }
+    const allowedKeys = [
+      'invoice_number',
+      'notify_party',
+      'country_of_origin',
+      'country_of_final_destination'
+    ];
+
+    const pushItem = (k: string, v: any) => {
+      const val = (v === null || v === undefined || v === '') ? '--' : String(v);
+      result.push({ key: this.formatKey(k), value: val });
     };
 
     for (const key of Object.keys(pl)) {
-      processValue(key, pl[key]);
+      if (allowedKeys.includes(key) || key.endsWith('_date')) {
+        const val = pl[key];
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+          pushItem(key, val.name || '--');
+        } else {
+          pushItem(key, val);
+        }
+      }
     }
-
-    result.sort((a, b) => {
-      const valA = a[this.sortColumn].toLowerCase();
-      const valB = b[this.sortColumn].toLowerCase();
-      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
 
     return result;
   }
