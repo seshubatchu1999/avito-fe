@@ -17,6 +17,7 @@ export class WorkflowStateService {
   readonly groupColors = signal<{ [groupId: string]: string }>({});
   readonly currentStep = signal<number>(1);
   readonly availableColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
+  readonly loadingGroups = signal<{ [groupId: string]: boolean }>({});
 
   // Derived state (computed)
   readonly enrichedHblReviews = computed(() => {
@@ -82,6 +83,10 @@ export class WorkflowStateService {
 
   setCurrentStep(step: number) {
     this.currentStep.set(step);
+  }
+
+  setGroupLoading(groupId: string, isLoading: boolean) {
+    this.loadingGroups.update(loads => ({ ...loads, [groupId]: isLoading }));
   }
 
   updateDraft(draftId: string, changes: Partial<ReviewDraft>) {

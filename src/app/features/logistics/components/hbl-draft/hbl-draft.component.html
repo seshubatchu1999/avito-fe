@@ -141,6 +141,17 @@
         </div>
         </div>
       }
+
+      @if (isLoading) {
+        <div class="loading-overlay">
+          <div style="display: flex; align-items: center; justify-content: center;">
+            <div style="width: 128px; display: flex; justify-content: center; align-items: center;">
+              <span class="loader"></span>
+            </div>
+            <p style="margin: 0; font-weight: 600; color: #1a2b4c; margin-left: 16px;">Syncing group...</p>
+          </div>
+        </div>
+      }
     </div>
 
     @if (selectedDocUrl) {

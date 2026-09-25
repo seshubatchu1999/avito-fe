@@ -100,6 +100,11 @@ export class HblDraftComponent {
     });
     this.toast.show('HBL Details Saved successfully for selected packing lists', 'success');
     
+    console.log(`[Mock API Request] POST /api/generate-hbl`, { 
+      hblDetails: savedData, 
+      pdfSources: this.drafts.map(d => d.source_name) 
+    });
+
     // Automatically trigger generation since the button was clicked
     this.generateHbl();
   }
@@ -119,5 +124,10 @@ export class HblDraftComponent {
 
   get detailsConfirmed(): boolean {
     return this.drafts.every(d => d.details_confirmed);
+  }
+
+  get isLoading(): boolean {
+    const groupId = this.primaryDraft?.group_id;
+    return groupId ? !!this.workflow.loadingGroups()[groupId] : false;
   }
 }

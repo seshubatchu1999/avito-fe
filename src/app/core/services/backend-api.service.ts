@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
+import { Observable, delay, of, tap } from 'rxjs';
 import { PackingList } from '../models/schemas';
 
 @Injectable({
@@ -8,6 +8,8 @@ import { PackingList } from '../models/schemas';
 export class BackendApiService {
   
   uploadFiles(files: File[]): Observable<any> {
+    console.log(`[Mock API Request] POST /api/extract`, { files });
+    console.log(`[Mock API Request] Note: If this is a subsequent call, the backend is expected to filter/skip already extracted files.`);
     const response: any = {};
     const totalFiles = files.length;
     
@@ -67,7 +69,10 @@ export class BackendApiService {
         });
     });
 
-    return of(response).pipe(delay(2500)); // simulate network delay
+    return of(response).pipe(
+      delay(2500),
+      tap(res => console.log(`[Mock API Response] 200 OK /api/extract`, res))
+    );
   }
 }
 

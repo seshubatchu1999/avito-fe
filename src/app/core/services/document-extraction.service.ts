@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
+import { Observable, delay, of, tap } from 'rxjs';
 import { PackingList, Party, ReviewDraft } from '../models/schemas';
 
 @Injectable({
@@ -7,7 +7,9 @@ import { PackingList, Party, ReviewDraft } from '../models/schemas';
 })
 export class DocumentExtractionService {
   
-  extractPackingList(file: File): Observable<PackingList> {
+  extractPackingList(files: File[]): Observable<PackingList[]> {
+    console.log(`[Mock API Request] POST /api/extract`, { files });
+    console.log(`[Mock API Request] Note: If this is a subsequent call, the backend is expected to filter/skip already extracted files.`);
     const mockPackingList: PackingList = {
       shipper_exporter: { name: "Mock Exporter Ltd", address: "123 Export St, Industrial Park, Shanghai", tax_id: null },
       consignee: { name: "Mock Consignee Corp", address: "456 Import Ave, Logistics Center, Los Angeles", tax_id: null },
@@ -37,11 +39,27 @@ export class DocumentExtractionService {
       other_particulars: null, marks_and_numbers: null, total_net_weight: null
     };
 
-    return of(mockPackingList).pipe(delay(2500));
+    const response = files.map(() => mockPackingList);
+    
+    return of(response).pipe(
+      delay(2500),
+      tap(res => console.log(`[Mock API Response] 200 OK /api/extract`, res))
+    );
   }
 
   generateHbl(draft: ReviewDraft): Observable<string> {
     const blankPdf = 'data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUuMjggODQxLjg5XQo+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjIxMwolJUVPRgo=';
-    return of(blankPdf).pipe(delay(1000));
+    return of(blankPdf).pipe(
+      delay(1000),
+      tap(res => console.log(`[Mock API Response] 200 OK /api/generate-hbl`, res))
+    );
+  }
+
+  syncGroup(groupId: string, drafts: any[]): Observable<any> {
+    console.log(`[Mock API Request] POST /api/group`, { groupId, drafts });
+    return of({ success: true }).pipe(
+      delay(1500),
+      tap(res => console.log(`[Mock API Response] 200 OK /api/group`, res))
+    );
   }
 }
