@@ -50,6 +50,7 @@ export class AppComponent {
   ) {}
 
   viewDoc(draft: ReviewDraft) {
+    console.log(draft,'draft')
     this.selectedDocUrl.set(draft.source_document || null);
     this.selectedDocName.set(draft.source_name);
     this.selectedDocMime.set(draft.mime_type);
@@ -75,32 +76,39 @@ export class AppComponent {
     this.backendService.uploadFiles(newFiles).subscribe((response: any) => {
       let currentColors = { ...this.workflow.groupColors() };
       const currentDrafts = [...this.workflow.hblReviews()];
+      console.log(response,'response')
+      if (response.batch_id) {
+        this.workflow.setBatchId(response.batch_id);
+      }
+      response.hbl_groups.forEach((group: any) => {
 
-      Object.keys(response).forEach(groupId => {
-        const groupItems = response[groupId];
-        if (!isSubsequentUpload && groupItems.length > 1) {
-          if (!currentColors[groupId]) {
-             const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
-             currentColors[groupId] = this.workflow.availableColors[colorIndex];
-          }
+        const groupId = group.group_id;
+console.log(groupId,'grpid')
+        if (!currentColors[groupId]) {
+           const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
+           currentColors[groupId] = this.workflow.availableColors[colorIndex];
         }
-        
-        groupItems.forEach((item: any) => {
-          const file = newFiles.find(f => f.name === item.file_name);
+
+        group.document_ids.forEach((docId: string) => {
+          const doc = response.documents.find((d: any) => d.document_id === docId);
+          if (!doc) return;
+
+          // Try to map back to uploaded file, else fake one (for mock scenario)
+          let file = newFiles.find(f => f.name === doc.filename);
+          if (!file) {
+             // If mock doesn't match actual file names, assign sequentially if possible, or fallback
+             file = newFiles[currentDrafts.length % newFiles.length];
+          }
           if (!file) return;
 
-          let finalGroupId = groupId;
-          if (isSubsequentUpload || groupItems.length === 1) {
-            finalGroupId = 'single_' + Math.random().toString(36).substring(7);
-          }
-
-          const packingList = item.packing_list;
+          const packingList = doc.extraction;
           const newDraft: ReviewDraft = {
             draft_id: Math.random().toString(36).substring(7),
-            source_name: file.name,
+            document_id: doc.document_id,
+            source_name: doc.filename,
             source_document: URL.createObjectURL(file),
-            mime_type: file.type || 'application/pdf',
-            group_id: finalGroupId,
+            mime_type: doc.mime_type || 'application/pdf',
+            group_id: groupId,
             packing_list: packingList,
             details_confirmed: false,
             hbl_details: {

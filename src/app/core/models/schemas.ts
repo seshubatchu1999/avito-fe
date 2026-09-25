@@ -108,6 +108,7 @@ export interface MblManualDetails {
 
 export interface ReviewDraft {
   draft_id: string;
+  document_id?: string;
   source_name: string;
   source_document: string; // base64 or buffer
   mime_type: string;

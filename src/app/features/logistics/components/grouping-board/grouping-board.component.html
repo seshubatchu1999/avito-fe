@@ -5,6 +5,7 @@
     </div>
     <div class="grouping-header-actions">
       <button class="btn-outline grouping-add-btn" (click)="addGroup($event)">+ Add Group</button>
+      <button class="btn-outline grouping-add-btn" [disabled]="!hasPendingUpdates" (click)="updateGroups($event)">Update Group</button>
       <button class="btn-outline grouping-clear-btn" (click)="clearSuggestions($event)">Clear Suggestion Group</button>
       <button class="btn-outline grouping-clear-btn" (click)="clearAll($event)">Clear All</button>
       <svg class="grouping-chevron" [class.rotate-180]="isMultiSelectOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -17,7 +18,7 @@
         
         <!-- Ungrouped Drop Zone -->
         <div cdkDropList
-             [cdkDropListData]="workflow.ungroupedDrafts()"
+             [cdkDropListData]="localUngroupedDrafts()"
              (cdkDropListDropped)="drop($event, null)"
              class="grouping-drop-zone">
           <div class="grouping-drop-zone-title">
@@ -25,7 +26,7 @@
           </div>
           
           <div class="grouping-drop-zone-list">
-            @for (review of workflow.ungroupedDrafts(); track review.draft_id) {
+            @for (review of localUngroupedDrafts(); track review.draft_id) {
               <div cdkDrag
                       [cdkDragDisabled]="workflow.isGroupSaved(review.group_id || null)"
                       class="pill-btn"
@@ -38,7 +39,7 @@
                 </div>
               </div>
             }
-            @if (workflow.ungroupedDrafts().length === 0) {
+            @if (localUngroupedDrafts().length === 0) {
               <div class="grouping-empty-text">
                 Drag PDFs here to ungroup
               </div>
@@ -47,7 +48,7 @@
         </div>
 
         <!-- Group Drop Zones -->
-        @for (group of workflow.groupedAllDrafts(); track group.groupId; let gIdx = $index) {
+        @for (group of localGroupedAllDrafts(); track group.groupId; let gIdx = $index) {
           <div cdkDropList
                [cdkDropListData]="group.drafts"
                (cdkDropListDropped)="drop($event, group.groupId)"
@@ -93,3 +94,5 @@
     </div>
   }
 </div>
+
+<app-wifi-loader [show]="isUpdatingGroup" text="updating groups"></app-wifi-loader>

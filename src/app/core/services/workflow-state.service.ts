@@ -12,6 +12,7 @@ export interface GroupedDrafts {
 })
 export class WorkflowStateService {
   // Core state
+  readonly batchId = signal<string | null>(null);
   readonly hblReviews = signal<ReviewDraft[]>([]);
   readonly mblReview = signal<MblReview | null>(null);
   readonly groupColors = signal<{ [groupId: string]: string }>({});
@@ -68,6 +69,10 @@ export class WorkflowStateService {
   });
 
   // Actions
+  setBatchId(id: string | null) {
+    this.batchId.set(id);
+  }
+
   setHblReviews(reviews: ReviewDraft[]) {
     this.hblReviews.set(reviews);
   }
