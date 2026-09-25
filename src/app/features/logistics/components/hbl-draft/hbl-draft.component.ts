@@ -142,23 +142,50 @@ export class HblDraftComponent {
       'invoice_number',
       'notify_party',
       'country_of_origin',
-      'country_of_final_destination'
+      'country_of_final_destination',
+      'total_gross_weight',
+      'total_package_count',
+      'total_net_weight',
+      'quantity',
+      'package_numbers',
+      'net_weight'
     ];
 
     const pushItem = (k: string, v: any) => {
+      const formattedKey = this.formatKey(k);
+      if (result.some(r => r.key === formattedKey)) return;
       const val = (v === null || v === undefined || v === '') ? '--' : String(v);
-      result.push({ key: this.formatKey(k), value: val });
+      result.push({ key: formattedKey, value: val });
+    };
+
+    const processValue = (prefix: string, leafKey: string, val: any) => {
+      if (Array.isArray(val)) {
+        if (val.length > 0 && typeof val[0] !== 'object') {
+          if (allowedKeys.includes(leafKey) || leafKey.endsWith('_date')) {
+            pushItem(leafKey, val.join(', '));
+          }
+        } else {
+          val.forEach((item, index) => {
+            if (item && typeof item === 'object') {
+              for (const k of Object.keys(item)) {
+                processValue(`${prefix}_${index + 1}_${k}`, k, item[k]);
+              }
+            }
+          });
+        }
+      } else if (val && typeof val === 'object') {
+        if (allowedKeys.includes(leafKey) || leafKey.endsWith('_date')) {
+          pushItem(leafKey, val.name || '--');
+        }
+      } else {
+        if (allowedKeys.includes(leafKey) || leafKey.endsWith('_date')) {
+          pushItem(leafKey, val);
+        }
+      }
     };
 
     for (const key of Object.keys(pl)) {
-      if (allowedKeys.includes(key) || key.endsWith('_date')) {
-        const val = pl[key];
-        if (val && typeof val === 'object' && !Array.isArray(val)) {
-          pushItem(key, val.name || '--');
-        } else {
-          pushItem(key, val);
-        }
-      }
+      processValue(key, key, pl[key]);
     }
 
     return result;
