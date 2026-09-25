@@ -115,52 +115,45 @@
 
             <!-- Extracted Data Table -->
             <div class="mb-8">
-              <h4 class="mb-4 pb-2 border-b">Extracted Data from PDF</h4>
-              <div class="table-container rounded" style="background: #fff; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0;">
-                <table class="w-full text-left border-collapse" style="font-size: 14px; table-layout: fixed; width: 100%;">
-                  <thead>
-                    <tr style="background: #f1f5f9;">
-                      <th class="p-3 border border-gray-200 cursor-pointer select-none" style="width: 50%;" (click)="toggleSort('key')">
-                        <div class="flex items-center justify-between">
-                          <span>Field</span>
-                          <span class="text-gray-400 text-xs">
-                            @if (sortColumn === 'key') {
-                              {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                            } @else {
-                              ↕
-                            }
-                          </span>
-                        </div>
-                      </th>
-                      <th class="p-3 border border-gray-200 cursor-pointer select-none" style="width: 50%;" (click)="toggleSort('value')">
-                        <div class="flex items-center justify-between">
-                          <span>Extracted Value</span>
-                          <span class="text-gray-400 text-xs">
-                            @if (sortColumn === 'value') {
-                              {{ sortDirection === 'asc' ? '▲' : '▼' }}
-                            } @else {
-                              ↕
-                            }
-                          </span>
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (item of getExtractedData(); track item.key) {
-                      <tr class="hover:bg-gray-50">
-                        <td class="p-3 border border-gray-200 text-gray-600 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{{ item.key }}</td>
-                        <td class="p-3 border border-gray-200 text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis" [title]="item.value">{{ item.value }}</td>
-                      </tr>
-                    }
-                    @if (getExtractedData().length === 0) {
+              <details class="extracted-data-accordion group" open>
+                <summary class="accordion-header extracted-data-header" style="cursor: pointer; padding: 12px 16px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                  <span style="color: #0f172a; font-size: 16px;">Extracted Data from PDF</span>
+                  <svg class="w-5 h-5 text-gray-500 transition-transform duration-200 group-open:rotate-180" style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="table-container rounded mt-2" style="background: #fff; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0;">
+                  <table class="extracted-table">
+                    <thead>
                       <tr>
-                        <td colspan="2" class="p-4 border border-gray-200 text-center text-gray-500">No scalar data extracted.</td>
+                        <th class="header-cell" style="width: 40%;" 
+                            [class.sort-asc]="sortColumn === 'key' && sortDirection === 'asc'"
+                            [class.sort-desc]="sortColumn === 'key' && sortDirection === 'desc'"
+                            (click)="toggleSort('key')">
+                          <div>Field</div>
+                        </th>
+                        <th class="header-cell" style="width: 60%;"
+                            [class.sort-asc]="sortColumn === 'value' && sortDirection === 'asc'"
+                            [class.sort-desc]="sortColumn === 'value' && sortDirection === 'desc'"
+                            (click)="toggleSort('value')">
+                          <div>Extracted Value</div>
+                        </th>
                       </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      @for (item of getExtractedData(); track item.key) {
+                        <tr class="hover:bg-blue-50 even:bg-slate-50 transition-colors">
+                          <td class="cell text-gray-700 font-semibold align-top">{{ item.key }}</td>
+                          <td class="cell text-gray-900 break-words align-top" [title]="item.value">{{ item.value }}</td>
+                        </tr>
+                      }
+                      @if (getExtractedData().length === 0) {
+                        <tr>
+                          <td colspan="2" class="cell p-6 text-center text-gray-500">No scalar data extracted.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </details>
             </div>
             <div class="flex form-actions-container">
               @if (!isLocked) {

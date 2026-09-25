@@ -136,15 +136,28 @@ export class HblDraftComponent {
   getExtractedData(): { key: string, value: string }[] {
     if (!this.primaryDraft?.packing_list) return [];
     const pl = this.primaryDraft.packing_list as any;
-    const result = [];
-    for (const key of Object.keys(pl)) {
-      const val = pl[key];
-      if (key !== 'items' && key !== 'containers' && val && typeof val !== 'object') {
-        result.push({
-          key: this.formatKey(key),
-          value: String(val)
-        });
+    const result: { key: string, value: string }[] = [];
+
+    const processValue = (prefix: string, val: any) => {
+      if (val === null || val === undefined || val === '') return;
+      if (Array.isArray(val)) {
+        if (val.length === 0) return;
+        if (typeof val[0] !== 'object') {
+          result.push({ key: this.formatKey(prefix), value: val.join(', ') });
+        } else {
+          val.forEach((item, index) => processValue(`${prefix} ${index + 1}`, item));
+        }
+      } else if (typeof val === 'object') {
+        for (const k of Object.keys(val)) {
+          processValue(`${prefix} ${k}`, val[k]);
+        }
+      } else {
+        result.push({ key: this.formatKey(prefix), value: String(val) });
       }
+    };
+
+    for (const key of Object.keys(pl)) {
+      processValue(key, pl[key]);
     }
 
     result.sort((a, b) => {
@@ -159,6 +172,10 @@ export class HblDraftComponent {
   }
 
   formatKey(key: string): string {
-    return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return key
+      .split(/[ _]/)
+      .filter(w => w.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 }
