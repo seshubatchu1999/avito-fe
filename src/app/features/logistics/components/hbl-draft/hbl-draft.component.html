@@ -92,30 +92,76 @@
               <!-- Notify Party -->
               <div>
                 <h4 class="mb-4 pb-2 border-b">Notify Party</h4>
-                <div class="grid grid-cols-4 gap-4">
-                  <div class="">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
                     <label class="form-label">Name *</label>
                     <input type="text" name="notifyName" [(ngModel)]="formData.notify_party.name" required #notifyName="ngModel"
                       class="form-input" [class.is-invalid]="notifyName.invalid && (notifyName.touched || hblForm.submitted)" [disabled]="isLocked">
                     <div class="error-text" [style.visibility]="notifyName.invalid && (notifyName.touched || hblForm.submitted) ? 'visible' : 'hidden'">Name is required</div>
-                  </div>
 
-                  <div class="">
                     <label class="form-label">Tax / Registration ID</label>
                     <input type="text" name="notifyTax" [(ngModel)]="formData.notify_party.tax_id" class="form-input" [disabled]="isLocked">
                   </div>
- 
-                  <div class="">
-                  <label class="form-label">Address *</label>
-                  <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="3" 
-                    class="form-input" [class.is-invalid]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted)" [disabled]="isLocked"></textarea>
-                  <div class="error-text" [style.visibility]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted) ? 'visible' : 'hidden'">Address is required</div>
-                </div>
+                  <div>
 
+                    <label class="form-label">Address *</label>
+                  <textarea name="notifyAddress" [(ngModel)]="formData.notify_party.address" required #notifyAddress="ngModel" rows="6"
+                    class="form-input" style="resize: none;" [class.is-invalid]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted)" [disabled]="isLocked"></textarea>
+                  <div class="error-text" [style.visibility]="notifyAddress.invalid && (notifyAddress.touched || hblForm.submitted) ? 'visible' : 'hidden'">Address is required</div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            <!-- Extracted Data Table -->
+            <div class="mb-8">
+              <h4 class="mb-4 pb-2 border-b">Extracted Data from PDF</h4>
+              <div class="table-container rounded" style="background: #fff; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0;">
+                <table class="w-full text-left border-collapse" style="font-size: 14px; table-layout: fixed; width: 100%;">
+                  <thead>
+                    <tr style="background: #f1f5f9;">
+                      <th class="p-3 border border-gray-200 cursor-pointer select-none" style="width: 50%;" (click)="toggleSort('key')">
+                        <div class="flex items-center justify-between">
+                          <span>Field</span>
+                          <span class="text-gray-400 text-xs">
+                            @if (sortColumn === 'key') {
+                              {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                            } @else {
+                              ↕
+                            }
+                          </span>
+                        </div>
+                      </th>
+                      <th class="p-3 border border-gray-200 cursor-pointer select-none" style="width: 50%;" (click)="toggleSort('value')">
+                        <div class="flex items-center justify-between">
+                          <span>Extracted Value</span>
+                          <span class="text-gray-400 text-xs">
+                            @if (sortColumn === 'value') {
+                              {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                            } @else {
+                              ↕
+                            }
+                          </span>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of getExtractedData(); track item.key) {
+                      <tr class="hover:bg-gray-50">
+                        <td class="p-3 border border-gray-200 text-gray-600 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{{ item.key }}</td>
+                        <td class="p-3 border border-gray-200 text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis" [title]="item.value">{{ item.value }}</td>
+                      </tr>
+                    }
+                    @if (getExtractedData().length === 0) {
+                      <tr>
+                        <td colspan="2" class="p-4 border border-gray-200 text-center text-gray-500">No scalar data extracted.</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <div class="flex form-actions-container">
               @if (!isLocked) {
                 <button type="submit" class="btn-primary">Save HBL Details and Generate Final HBL</button>
