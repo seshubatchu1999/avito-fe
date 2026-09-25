@@ -5,7 +5,7 @@
   <main class="main-layout">
     <!-- Left Column: Uploader -->
     <div class="left-panel" [class.full-width]="workflow.hblReviews().length === 0">
-      <header class="app-header">
+      <header class="app-header" [style.justify-content]="workflow.hblReviews().length > 0 ? 'center' : 'flex-start'">
         <div class="logo-container">
           <img src="avito.png" alt="Avito Logo" class="header-logo" />
           <div>
