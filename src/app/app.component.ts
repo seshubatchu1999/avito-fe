@@ -144,18 +144,18 @@ console.log(groupId,'grpid')
     };
 
     this.backendService.generateHbl(payload).subscribe({
-      next: (res: any) => {
-        if (res && res.pdf_url) {
+      next: (result) => {
+        if (result && result.pdfBase64) {
           drafts.forEach(draft => {
             this.workflow.updateDraft(draft.draft_id, {
-              hbl_pdf: res.pdf_url,
-              hbl_filename: `Merged-${freshDraft.hbl_number || 'draft'}-HBL.pdf`
+              hbl_pdf: result.pdfBase64,
+              hbl_filename: result.filename || `Merged-${freshDraft.hbl_number || 'draft'}-HBL.pdf`
             });
           });
           this.toast.show('Final HBL generated. Saved HBL details are locked.', 'success');
           this.checkMblReadiness();
         } else {
-          console.error('generateHbl response did not contain pdf_url', res);
+          console.error('generateHbl response did not contain pdfBase64', result);
         }
         this.isGenerating.set(false);
       },
@@ -201,11 +201,11 @@ console.log(groupId,'grpid')
     if (mblReview) {
       this.isGenerating.set(true);
       
-      this.extractionService.generateMbl(mblReview).subscribe((pdfBase64: string) => {
+      this.backendService.generateMbl(mblReview).subscribe((result) => {
         this.workflow.setMblReview({
           ...mblReview,
-          mbl_pdf: pdfBase64,
-          mbl_filename: `${mblReview.mbl_number || mblReview.mbl_details.mbl_number}-MBL.pdf`
+          mbl_pdf: result.pdfBase64,
+          mbl_filename: result.filename
         });
         this.toast.show('MBL Generated Successfully', 'success');
         this.isGenerating.set(false);
