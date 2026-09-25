@@ -5,6 +5,8 @@ import { ReviewDraft } from '../../../../core/models/schemas';
 import { DocumentModalComponent } from '../../../../shared/components/document-modal/document-modal.component';
 import { ToastService } from '../../../../core/services/toast.service';
 import { WorkflowStateService } from '../../../../core/services/workflow-state.service';
+import { MOCK_EXTRACTION_RESPONSE } from '../../../../core/services/mock-data';
+import { REASSIGN_MOCK_EXTRACTION_RESPONSE } from '../../../../core/services/reassign-groups-mock-data';
 
 @Component({
   selector: 'app-hbl-draft',
@@ -134,8 +136,35 @@ export class HblDraftComponent {
   }
 
   getExtractedData(): { key: string, value: string }[] {
-    if (!this.primaryDraft?.packing_list) return [];
-    const pl = this.primaryDraft.packing_list as any;
+    if (!this.primaryDraft) return [];
+    
+    let pl: any = this.primaryDraft.packing_list;
+    
+    if (this.primaryDraft.group_id) {
+      const currentDocIds = [...this.drafts.map(d => d.document_id || d.draft_id)].sort();
+      // Need to cast MOCK_EXTRACTION_RESPONSE as any because it might not have typed hbl_groups
+      const originalGroup = (MOCK_EXTRACTION_RESPONSE as any).hbl_groups?.find((g: any) => g.group_id === this.primaryDraft.group_id);
+      
+      let isChanged = true;
+      if (originalGroup) {
+        const originalDocIds = [...originalGroup.document_ids].sort();
+        isChanged = JSON.stringify(currentDocIds) !== JSON.stringify(originalDocIds);
+      }
+      
+      if (isChanged) {
+        const reassignedGroup = REASSIGN_MOCK_EXTRACTION_RESPONSE.hbl_groups.find((g: any) => g.group_id === this.primaryDraft.group_id);
+        if (reassignedGroup && reassignedGroup.combined_extraction) {
+          pl = reassignedGroup.combined_extraction;
+        }
+      } else {
+        if (originalGroup && originalGroup.combined_extraction) {
+          pl = originalGroup.combined_extraction;
+        }
+      }
+    }
+
+    if (!pl) return [];
+    
     const result: { key: string, value: string }[] = [];
 
     const allowedKeys = [
