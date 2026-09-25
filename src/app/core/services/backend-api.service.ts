@@ -20,8 +20,9 @@ export class BackendApiService {
     });
 
     return this.http.post('http://127.0.0.1:8000/v1/extractions/batch', formData).pipe(
+      delay(1500),
       map(() => MOCK_EXTRACTION_RESPONSE),
-      catchError(() => of(MOCK_EXTRACTION_RESPONSE))
+      catchError(() => of(MOCK_EXTRACTION_RESPONSE).pipe(delay(1500)))
     );
   }
 
