@@ -114,13 +114,13 @@
             </div>
 
             <!-- Extracted Data Table -->
-            <div class="mb-8">
-              <details class="extracted-data-accordion group" open>
-                <summary class="accordion-header extracted-data-header" style="cursor: pointer; padding: 12px 16px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+            <div class="mb-8 border border-gray-200 rounded-md overflow-hidden bg-white">
+              <details class="group" open>
+                <summary style="cursor: pointer; padding: 12px 16px; background: #f8fafc; font-weight: 600; display: flex; justify-content: space-between; align-items: center; list-style: none;" class="border-b border-transparent group-open:border-gray-200">
                   <span style="color: #0f172a; font-size: 16px;">Extracted Data from PDF</span>
                   <svg class="w-5 h-5 text-gray-500 transition-transform duration-200 group-open:rotate-180" style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </summary>
-                <div class="rounded mt-2" style="background: #fff; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px 16px; padding: 32px 24px;">
+                <div style="background: #fff; max-height: 400px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px 16px; padding: 32px 24px;">
                   @for (item of getExtractedData(); track $index) {
                     <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
                       <span style="font-weight: 600; color: #003366; font-size: 14px; margin-bottom: 8px;">{{ item.key }}</span>
@@ -130,6 +130,67 @@
                   @if (getExtractedData().length === 0) {
                     <div class="w-full text-center p-6 text-gray-500" style="grid-column: 1 / -1;">No data extracted.</div>
                   }
+                </div>
+              </details>
+            </div>
+
+            <!-- Items Details Table -->
+            <div class="mb-8 border border-gray-200 rounded-md overflow-hidden bg-white">
+              <details class="group" open>
+                <summary style="cursor: pointer; padding: 12px 16px; background: #f8fafc; font-weight: 600; display: flex; justify-content: space-between; align-items: center; list-style: none;" class="border-b border-transparent group-open:border-gray-200">
+                  <span style="color: #0f172a; font-size: 16px;">Items Details</span>
+                  <svg class="w-5 h-5 text-gray-500 transition-transform duration-200 group-open:rotate-180" style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="table-container" style="background: #fff; max-height: 400px; overflow-y: auto;">
+                  <table class="extracted-table" style="table-layout: auto; font-size: 13px;">
+                    <thead>
+                      <tr>
+                        <th class="header-cell" (click)="toggleItemsSort('shipping_marks')" [class.sort-asc]="itemsSortColumn === 'shipping_marks' && itemsSortDirection === 'asc'" [class.sort-desc]="itemsSortColumn === 'shipping_marks' && itemsSortDirection === 'desc'">
+                          <div>Marks & Nos/<br>Container No.</div>
+                        </th>
+                        <th class="header-cell" (click)="toggleItemsSort('package_count')" [class.sort-asc]="itemsSortColumn === 'package_count' && itemsSortDirection === 'asc'" [class.sort-desc]="itemsSortColumn === 'package_count' && itemsSortDirection === 'desc'">
+                          <div>No. & Kind<br>of Pkgs</div>
+                        </th>
+                        <th class="header-cell" (click)="toggleItemsSort('item_product_description')" [class.sort-asc]="itemsSortColumn === 'item_product_description' && itemsSortDirection === 'asc'" [class.sort-desc]="itemsSortColumn === 'item_product_description' && itemsSortDirection === 'desc'">
+                          <div>Description of Goods</div>
+                        </th>
+                        <th class="header-cell" (click)="toggleItemsSort('hsn_code')" [class.sort-asc]="itemsSortColumn === 'hsn_code' && itemsSortDirection === 'asc'" [class.sort-desc]="itemsSortColumn === 'hsn_code' && itemsSortDirection === 'desc'">
+                          <div>HSN Code</div>
+                        </th>
+                        <th class="header-cell" (click)="toggleItemsSort('net_weight')" [class.sort-asc]="itemsSortColumn === 'net_weight' && itemsSortDirection === 'asc'" [class.sort-desc]="itemsSortColumn === 'net_weight' && itemsSortDirection === 'desc'">
+                          <div>NET.wt</div>
+                        </th>
+                        <th class="header-cell" (click)="toggleItemsSort('quantity')" [class.sort-asc]="itemsSortColumn === 'quantity' && itemsSortDirection === 'asc'" [class.sort-desc]="itemsSortColumn === 'quantity' && itemsSortDirection === 'desc'">
+                          <div>Quantity<br>In PC'S</div>
+                        </th>
+                        <th class="header-cell" style="cursor: default;">
+                          <div>Unit Rate/ 1 PC<br>in EUR</div>
+                        </th>
+                        <th class="header-cell" style="cursor: default;">
+                          <div>Amount<br>in EUR</div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (item of getItems(); track $index) {
+                        <tr class="hover:bg-blue-50 even:bg-slate-50 transition-colors align-top">
+                          <td class="cell font-semibold">{{ item.shipping_marks || item.container_number || 0 }}</td>
+                          <td class="cell font-semibold">{{ item.package_count || 0 }} {{ item.package_type || '' }}</td>
+                          <td class="cell font-semibold">{{ item.item_product_description || 0 }}</td>
+                          <td class="cell font-bold">{{ item.hsn_code || 0 }}</td>
+                          <td class="cell font-bold">{{ item.net_weight || 0 }}</td>
+                          <td class="cell font-bold">{{ item.quantity || 0 }}</td>
+                          <td class="cell font-semibold">0</td>
+                          <td class="cell font-semibold">0</td>
+                        </tr>
+                      }
+                      @if (getItems().length === 0) {
+                        <tr>
+                          <td colspan="8" class="cell p-6 text-center text-gray-500 font-semibold">0</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
                 </div>
               </details>
             </div>
