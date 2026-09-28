@@ -28,12 +28,6 @@
   transition: all 0.3s;
 }
 
-.left-panel.full-width {
-  flex: 1;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
 .right-panel {
   flex: 1;
   display: flex;

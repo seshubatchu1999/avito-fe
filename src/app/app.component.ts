@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from './core/services/toast.service';
 import { BackendApiService } from './core/services/backend-api.service';
-import { DocumentExtractionService } from './core/services/document-extraction.service';
+
 import { UploaderComponent } from './features/logistics/components/uploader/uploader.component';
 import { HblDraftComponent } from './features/logistics/components/hbl-draft/hbl-draft.component';
 import { MblSectionComponent } from './features/logistics/components/mbl-section/mbl-section.component';
@@ -45,8 +45,7 @@ export class AppComponent {
 
   constructor(
     private toast: ToastService,
-    private backendService: BackendApiService,
-    private extractionService: DocumentExtractionService
+    private backendService: BackendApiService
   ) {}
 
   viewDoc(draft: ReviewDraft) {
@@ -148,7 +147,6 @@ console.log(groupId,'grpid')
         if (result && result.filename) {
           drafts.forEach(draft => {
             this.workflow.updateDraft(draft.draft_id, {
-              hbl_pdf: undefined, // Explicitly undefined to drop base64
               hbl_filename: result.filename
             });
           });
@@ -204,7 +202,6 @@ console.log(groupId,'grpid')
       this.backendService.generateMbl(mblReview).subscribe((result) => {
         this.workflow.setMblReview({
           ...mblReview,
-          mbl_pdf: undefined, // Explicitly undefined to drop base64
           mbl_filename: result.filename
         });
         this.toast.show('MBL Generated Successfully', 'success');

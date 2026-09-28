@@ -116,7 +116,6 @@ export interface ReviewDraft {
   packing_list: PackingList;
   hbl_details: HblManualDetails;
   details_confirmed: boolean;
-  hbl_pdf?: string; // URL to the generated PDF
   hbl_filename?: string;
   hbl_number?: string;
 }
@@ -126,7 +125,6 @@ export interface MblReview {
   draft_ids: string[]; // List of HBL draft IDs included
   mbl_details: MblManualDetails;
   details_confirmed: boolean;
-  mbl_pdf?: string;
   mbl_filename?: string;
   mbl_number?: string;
 }

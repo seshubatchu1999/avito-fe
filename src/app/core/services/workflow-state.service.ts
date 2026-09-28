@@ -150,7 +150,6 @@ export class WorkflowStateService {
           freight_terms: draft.packing_list.freight_terms
         },
         hbl_number: undefined,
-        hbl_pdf: undefined,
         hbl_filename: undefined
       }))
     );
