@@ -59,9 +59,15 @@ export class HblDraftComponent {
   }
 
   viewDoc(draft: ReviewDraft) {
-    this.selectedDocUrl = draft.source_document || null;
-    this.selectedDocName = draft.source_name;
-    this.selectedDocMime = draft.mime_type;
+    if (draft.hbl_pdf) {
+      this.selectedDocUrl = draft.hbl_pdf;
+      this.selectedDocName = draft.hbl_filename || 'HBL PDF';
+      this.selectedDocMime = 'application/pdf';
+    } else {
+      this.selectedDocUrl = draft.source_document || null;
+      this.selectedDocName = draft.source_name;
+      this.selectedDocMime = draft.mime_type;
+    }
   }
 
   closeDoc() {
