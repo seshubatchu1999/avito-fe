@@ -37,34 +37,37 @@ export class BackendApiService {
     );
   }
 
-  generateHbl(payload: any): Observable<{filename: string, pdfBase64: string}> {
+  generateHbl(payload: any): Observable<{filename: string}> {
     console.log(`[Mock API Request] POST /api/hbl/generate`);
     console.log(`Payload:`, payload);
-
     return this.http.get<{filename: string, base64: string}>('/hbl_preview.json').pipe(
       delay(1500),
-      map(response => {
-        return {
-          filename: response.filename,
-          pdfBase64: 'data:application/pdf;base64,' + response.base64
-        };
-      })
+      map(response => ({ filename: response.filename }))
     );
   }
 
-  generateMbl(mblReview: any): Observable<{filename: string, pdfBase64: string}> {
+  previewHbl(): Observable<string> {
+    console.log(`[Mock API Request] GET /api/hbl/preview`);
+    return this.http.get<{filename: string, base64: string}>('/hbl_preview.json').pipe(
+      delay(1000), // simulate network delay for fetching PDF
+      map(response => 'data:application/pdf;base64,' + response.base64)
+    );
+  }
+
+  generateMbl(mblReview: any): Observable<{filename: string}> {
     console.log(`[Mock API Request] POST /api/mbl/generate`);
     console.log(`Payload:`, { mblDetails: mblReview.mbl_details, includedHbls: mblReview.draft_ids });
-    
-    // Simulating an API call that returns a base64 string and filename
     return this.http.get<{filename: string, base64: string}>('/mbl_preview.json').pipe(
-      delay(2000), // simulate network delay
-      map(response => {
-        return {
-          filename: response.filename,
-          pdfBase64: 'data:application/pdf;base64,' + response.base64
-        };
-      })
+      delay(1500),
+      map(response => ({ filename: response.filename }))
+    );
+  }
+
+  previewMbl(): Observable<string> {
+    console.log(`[Mock API Request] GET /api/mbl/preview`);
+    return this.http.get<{filename: string, base64: string}>('/mbl_preview.json').pipe(
+      delay(1000), // simulate network delay for fetching PDF
+      map(response => 'data:application/pdf;base64,' + response.base64)
     );
   }
 }

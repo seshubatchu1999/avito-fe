@@ -135,7 +135,7 @@
             </div>
             <div class="flex form-actions-container">
               @if (!isLocked) {
-                <button type="submit" class="btn-primary">Save HBL Details and Generate Final HBL</button>
+                <button type="submit" class="btn-primary">Save HBL Details and Generate Final HBL</button>@if (isPreviewingHbl) { <span class="spinner-small" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></span> }
               }
             </div>
           </form>
@@ -146,10 +146,10 @@
               <h4 class="mb-4 pb-2 border-b">Generated Final HBL</h4>
               <p class="tab-subtitle">Final HBL number: <code class="hbl-number-code">{{ primaryDraft?.hbl_number }}</code></p>
               <div class="generated-hbl-container">
-                @if (primaryDraft?.hbl_pdf) {
+                @if (primaryDraft?.hbl_filename) {
                   <div class="doc-box final-hbl-doc-box" style="max-width: fit-content; gap: 16px;">
                     <span class="doc-filename" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">📄 {{ primaryDraft.hbl_filename }}</span>
-                    <button type="button" title="View Full HBL" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="viewDoc(primaryDraft)">👁️</button>
+                    <button type="button" title="View Full HBL" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="viewDoc(primaryDraft)">👁️</button>@if (isPreviewingHbl) { <span class="spinner-small" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></span> }
                   </div>
                 }
               </div>

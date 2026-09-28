@@ -65,7 +65,7 @@ export class WorkflowStateService {
 
   readonly canShowMbl = computed(() => {
     const reviews = this.enrichedHblReviews();
-    return reviews.length > 0 && reviews.every(r => !!r.hbl_pdf);
+    return reviews.length > 0 && reviews.every(r => !!r.hbl_filename);
   });
 
   // Actions

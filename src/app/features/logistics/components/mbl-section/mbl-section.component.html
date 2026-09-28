@@ -2,7 +2,7 @@
       <h2 class="mbl-title">Master Bill of Lading</h2>
       <p class="mbl-subtitle">This MBL includes every HBL created from the uploaded packing-list batch. Confirm the carrier booking, MBL-level parties, and VGM before generation.</p>
 
-      @if (mblReview.mbl_pdf) {
+      @if (mblReview.mbl_filename) {
         <div class="card">
           <p class="success-text">Final MBL generated from {{ mblReview.draft_ids.length }} HBL(s).</p>
           <p class="info-text">Final MBL number: <code class="code-block">{{ mblReview.mbl_number }}</code></p>
@@ -10,12 +10,12 @@
 
           <div class="doc-box" style="max-width: fit-content; gap: 16px;">
             <span class="doc-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">📄 {{ mblReview.mbl_filename }}</span>
-            <button type="button" title="View Full MBL" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="viewMbl = true">👁️</button>
+            <button type="button" title="View Full MBL" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="previewMblDoc()">👁️</button>@if (isPreviewing) { <span class="spinner-small" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></span> }
           </div>
         </div>
       }
 
-      @if (!mblReview.mbl_pdf) {
+      @if (!mblReview.mbl_filename) {
         <div class="card">
           <p class="info-text-large included-hbls-label">Included HBLs: {{ getIncludedHblNumbers() }}</p>
 
@@ -36,7 +36,7 @@
                </div>
             </div>
 
-            <button type="submit" class="btn-primary">Generate Final MBL PDF</button>
+            <button type="submit" class="btn-primary">Generate Final MBL PDF</button>@if (isPreviewing) { <span class="spinner-small" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></span> }
 
             @if (mblForm.submitted && mblForm.invalid) {
               <div class="alert-error mt-4">
@@ -48,12 +48,12 @@
       }
     </div>
 
-    @if (mblReview.mbl_pdf) {
+    @if (mblReview.mbl_filename) {
       <app-document-modal 
         [isOpen]="viewMbl" 
         [title]="mblReview.mbl_filename || 'MBL PDF'" 
-        [documentUrl]="mblReview.mbl_pdf" 
+        [documentUrl]="mblDocUrl!" 
         mimeType="application/pdf"
-        (closed)="viewMbl = false">
+        (closed)="viewMbl = false; mblDocUrl = null">
       </app-document-modal>
     }

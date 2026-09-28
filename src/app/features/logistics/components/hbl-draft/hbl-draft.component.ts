@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ReviewDraft } from '../../../../core/models/schemas';
 import { DocumentModalComponent } from '../../../../shared/components/document-modal/document-modal.component';
 import { ToastService } from '../../../../core/services/toast.service';
 import { WorkflowStateService } from '../../../../core/services/workflow-state.service';
+import { BackendApiService } from '../../../../core/services/backend-api.service';
 import { MOCK_EXTRACTION_RESPONSE } from '../../../../core/services/mock-data';
 import { REASSIGN_MOCK_EXTRACTION_RESPONSE } from '../../../../core/services/reassign-groups-mock-data';
 
@@ -33,7 +34,13 @@ export class HblDraftComponent {
   selectedDocMime: string = '';
   selectedPackingListIndex: number = 0;
 
-  constructor(private toast: ToastService) {}
+  isPreviewingHbl = false;
+
+  constructor(
+    private toast: ToastService,
+    private backendService: BackendApiService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
@@ -54,15 +61,21 @@ export class HblDraftComponent {
   viewSelectedDoc() {
     const draft = this.drafts[this.selectedPackingListIndex] || this.drafts[0];
     if (draft) {
-      this.viewDoc(draft);
+      this.viewDoc(draft, false);
     }
   }
 
-  viewDoc(draft: ReviewDraft) {
-    if (draft.hbl_pdf) {
-      this.selectedDocUrl = draft.hbl_pdf;
-      this.selectedDocName = draft.hbl_filename || 'HBL PDF';
-      this.selectedDocMime = 'application/pdf';
+  viewDoc(draft: ReviewDraft, isHbl = true) {
+    if (isHbl && draft.hbl_filename) {
+      this.isPreviewingHbl = true;
+      this.cdr.markForCheck();
+      this.backendService.previewHbl().subscribe(base64 => {
+        this.selectedDocUrl = base64;
+        this.selectedDocName = draft.hbl_filename || 'HBL PDF';
+        this.selectedDocMime = 'application/pdf';
+        this.isPreviewingHbl = false;
+        this.cdr.markForCheck();
+      });
     } else {
       this.selectedDocUrl = draft.source_document || null;
       this.selectedDocName = draft.source_name;
@@ -122,7 +135,7 @@ export class HblDraftComponent {
   }
 
   get isLocked(): boolean {
-    return this.drafts.some(d => !!d.hbl_pdf);
+    return this.drafts.some(d => !!d.hbl_filename);
   }
 
   get detailsConfirmed(): boolean {
