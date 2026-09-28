@@ -141,6 +141,32 @@ export class HblDraftComponent {
     }
   }
 
+  itemsSortColumn = '';
+  itemsSortDirection: 'asc' | 'desc' = 'asc';
+
+  toggleItemsSort(column: string) {
+    if (this.itemsSortColumn === column) {
+      this.itemsSortDirection = this.itemsSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.itemsSortColumn = column;
+      this.itemsSortDirection = 'asc';
+    }
+  }
+
+  getItems(): any[] {
+    let items = [...(this.primaryDraft?.packing_list?.items || [])];
+    if (this.itemsSortColumn) {
+      items.sort((a, b) => {
+        let valA = String((a as any)[this.itemsSortColumn] || 0).toLowerCase();
+        let valB = String((b as any)[this.itemsSortColumn] || 0).toLowerCase();
+        if (valA < valB) return this.itemsSortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return this.itemsSortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }
+
   getExtractedData(): { key: string, value: string }[] {
     if (!this.primaryDraft) return [];
     
@@ -221,6 +247,24 @@ export class HblDraftComponent {
 
     for (const key of Object.keys(pl)) {
       processValue(key, key, pl[key]);
+    }
+
+    if (pl.consignee) {
+      const cName = pl.consignee.name || '--';
+      const cAddress = pl.consignee.address || '--';
+      
+      const tnwIndex = result.findIndex(r => r.key === 'Total Net Weight');
+      if (tnwIndex !== -1) {
+        result.splice(tnwIndex + 1, 0, 
+          { key: 'Consignee Name', value: cName },
+          { key: 'Consignee Address', value: cAddress }
+        );
+      } else {
+        result.push(
+          { key: 'Consignee Name', value: cName },
+          { key: 'Consignee Address', value: cAddress }
+        );
+      }
     }
 
     return result;

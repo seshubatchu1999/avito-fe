@@ -106,21 +106,26 @@
 
 /* Custom Table Styles */
 .extracted-table {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #545454;
   font-family: 'Lato', sans-serif;
   color: #3f3f3f;
   width: 100%;
-  table-layout: fixed;
+  table-layout: auto;
   border-collapse: collapse;
 }
 
+.extracted-table th,
+.extracted-table td {
+  border: 1px solid #545454;
+  text-align: center;
+}
+
 .extracted-table .cell {
-  padding: 5px 10px;
-  border-top: 1px solid #e2e8f0;
+  padding: 12px 16px;
 }
 
 .extracted-table .header-cell {
-  padding: 10px 30px 10px 10px;
+  padding: 12px 30px 12px 12px;
   position: relative;
   cursor: pointer;
   background: #f1f5f9;
@@ -168,7 +173,5 @@
 }
 
 .extracted-table .header-cell div {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Allow multi-line headers instead of truncating */
 }
