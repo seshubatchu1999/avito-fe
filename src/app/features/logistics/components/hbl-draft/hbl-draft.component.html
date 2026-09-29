@@ -210,7 +210,10 @@
                 @if (primaryDraft?.hbl_pdf) {
                   <div class="doc-box final-hbl-doc-box" style="max-width: fit-content; gap: 16px;">
                     <span class="doc-filename" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">📄 {{ primaryDraft.hbl_filename }}</span>
-                    <button type="button" title="View Full HBL" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="viewDoc(primaryDraft)">👁️</button>
+                    <button type="button" title="View Full HBL" [disabled]="isHblPreviewLoading()" style="border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px;" (click)="viewHblPreview(primaryDraft)">👁️</button>
+                    @if (isHblPreviewLoading()) {
+                      <span class="doc-loading-text">Preparing HBL preview...</span>
+                    }
                   </div>
                 }
               </div>
@@ -228,5 +231,15 @@
         [documentUrl]="selectedDocUrl" 
         [mimeType]="selectedDocMime"
         (closed)="closeDoc()">
+      </app-document-modal>
+    }
+
+    @if (hblPreviewUrl()) {
+      <app-document-modal
+        [isOpen]="true"
+        [title]="hblPreviewName() || 'HBL PDF'"
+        [documentUrl]="hblPreviewUrl()!"
+        mimeType="application/pdf"
+        (closed)="closeHblPreview()">
       </app-document-modal>
     }

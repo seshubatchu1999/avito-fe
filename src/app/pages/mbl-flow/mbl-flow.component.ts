@@ -10,11 +10,12 @@ import { MblSectionComponent } from '../../features/logistics/components/mbl-sec
 import { GroupingBoardComponent } from '../../features/logistics/components/grouping-board/grouping-board.component';
 import { WifiLoaderComponent } from '../../shared/components/wifi-loader/wifi-loader.component';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
-import { ReviewDraft } from '../../core/models/schemas';
+import { ReviewDraft, BatchExtractionResponse, HblGroup } from '../../core/models/schemas';
 import { WorkflowStateService } from '../../core/services/workflow-state.service';
 
 import { DocumentModalComponent } from '../../shared/components/document-modal/document-modal.component';
 import { RouterModule } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-mbl-flow',
@@ -69,76 +70,104 @@ export class MblFlowComponent {
       return;
     }
 
-    const isSubsequentUpload = this.workflow.hblReviews().length > 0;
-
     this.isExtracting.set(true);
     
-    this.backendService.uploadFiles(newFiles).subscribe((response: any) => {
-      let currentColors = { ...this.workflow.groupColors() };
-      const currentDrafts = [...this.workflow.hblReviews()];
+    this.backendService.uploadFiles(newFiles).subscribe({
+      next: (response: BatchExtractionResponse) => {
+        let currentColors = { ...this.workflow.groupColors() };
+        const currentDrafts = [...this.workflow.hblReviews()];
 
-      Object.keys(response).forEach(groupId => {
-        const groupItems = response[groupId];
-        if (!isSubsequentUpload && groupItems.length > 1) {
-          if (!currentColors[groupId]) {
-             const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
-             currentColors[groupId] = this.workflow.availableColors[colorIndex];
+        response.hbl_groups.forEach(group => {
+          const groupItems = response.documents.filter(doc => group.document_ids.includes(doc.document_id));
+          // Every group the backend returns is a real HBL group, including single-document
+          // ones. Register a colour for each so the group renders as grouped rather than
+          // falling through to the ungrouped drop zone.
+          if (!currentColors[group.group_id]) {
+            const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
+            currentColors[group.group_id] = this.workflow.availableColors[colorIndex];
           }
-        }
-        
-        groupItems.forEach((item: any) => {
-          const file = newFiles.find(f => f.name === item.file_name);
-          if (!file) return;
+          this.workflow.addServerGroupIds([group.group_id]);
+          
+          groupItems.forEach(item => {
+            const file = newFiles.find(f => f.name === item.filename);
+            if (!file) return;
 
-          let finalGroupId = groupId;
-          if (isSubsequentUpload || groupItems.length === 1) {
-            finalGroupId = 'single_' + Math.random().toString(36).substring(7);
-          }
-
-          const packingList = item.packing_list;
-          const newDraft: ReviewDraft = {
-            draft_id: Math.random().toString(36).substring(7),
-            source_name: file.name,
-            source_document: URL.createObjectURL(file),
-            mime_type: file.type || 'application/pdf',
-            group_id: finalGroupId,
-            packing_list: packingList,
-            details_confirmed: false,
-            hbl_details: {
-              hbl_number: null,
-              notify_party: JSON.parse(JSON.stringify(packingList.notify_party || { name: null, address: null, tax_id: null })),
-              container_number: packingList.containers?.[0]?.container_number || null,
-              seal_number: packingList.containers?.[0]?.seal_numbers?.[0] || null,
-              freight_terms: packingList.freight_terms
-            }
-          };
-          currentDrafts.push(newDraft);
+            const newDraft: ReviewDraft = {
+              draft_id: Math.random().toString(36).substring(7),
+              source_name: file.name,
+              source_document: URL.createObjectURL(file),
+              mime_type: file.type || 'application/pdf',
+              group_id: group.group_id,
+              batch_id: response.batch_id,
+              document_id: item.document_id,
+              packing_list: item.extraction,
+              details_confirmed: false,
+              hbl_details: {
+                hbl_number: null,
+                notify_party: JSON.parse(JSON.stringify(item.extraction?.notify_party || { name: null, address: null, tax_id: null })),
+                container_number: item.extraction?.containers?.[0]?.container_number || null,
+                seal_number: item.extraction?.containers?.[0]?.seal_numbers?.[0] || null,
+                freight_terms: item.extraction?.freight_terms || null
+              }
+            };
+            currentDrafts.push(newDraft);
+          });
         });
-      });
 
-      this.workflow.setGroupColors(currentColors);
-      this.workflow.setHblReviews(currentDrafts);
-      
-      this.toast.show(`Extracted data from ${newFiles.length} files successfully`, 'success');
-      this.workflow.setCurrentStep(1);
-      this.isExtracting.set(false);
+        this.workflow.setGroupColors(currentColors);
+        this.workflow.setHblReviews(currentDrafts);
+        
+        this.toast.show(`Extracted data from ${newFiles.length} files successfully`, 'success');
+        this.workflow.setCurrentStep(1);
+        this.isExtracting.set(false);
+      },
+      error: (error) => {
+        const errorDetail = error?.error?.detail;
+        const msg = typeof errorDetail === 'string'
+          ? errorDetail
+          : (Array.isArray(errorDetail) ? errorDetail.map((e: any) => e.msg).join(', ') : 'Failed to extract data from files. Please try again.');
+        this.toast.show(msg, 'error');
+        this.isExtracting.set(false);
+        console.error('Extraction error:', error);
+      }
     });
   }
 
   generateHbl(drafts: ReviewDraft[]) {
     this.isGenerating.set(true);
     
-    this.extractionService.generateHbl(drafts[0]).subscribe((pdfUrl: string) => {
-      drafts.forEach(draft => {
-        this.workflow.updateDraft(draft.draft_id, {
-          hbl_pdf: pdfUrl,
-          hbl_filename: `Merged-${drafts[0].hbl_number}-HBL.pdf`
-        });
-      });
-      
-      this.toast.show('Final HBL generated. Saved HBL details are locked.', 'success');
+    const firstDraft = drafts[0];
+    if (!firstDraft.batch_id || !firstDraft.group_id) {
+      this.toast.show('Missing batch or group ID. Please re-upload files.', 'error');
       this.isGenerating.set(false);
-      this.checkMblReadiness();
+      return;
+    }
+
+    this.extractionService.generateHblBase64(firstDraft).subscribe({
+      next: (response) => {
+        const pdfUrl = `data:application/pdf;base64,${response.base64}`;
+        
+        drafts.forEach(draft => {
+          this.workflow.updateDraft(draft.draft_id, {
+            hbl_pdf: pdfUrl,
+            hbl_filename: response.filename,
+            hbl_number: firstDraft.hbl_details.hbl_number || undefined
+          });
+        });
+        
+        this.toast.show('Final HBL generated. Saved HBL details are locked.', 'success');
+        this.isGenerating.set(false);
+        this.checkMblReadiness();
+      },
+      error: (error) => {
+        const errorDetail = error?.error?.detail;
+        const msg = typeof errorDetail === 'string'
+          ? errorDetail
+          : (Array.isArray(errorDetail) ? errorDetail.map((e: any) => e.msg).join(', ') : 'Failed to generate HBL. Please try again.');
+        this.toast.show(msg, 'error');
+        this.isGenerating.set(false);
+        console.error('HBL generation error:', error);
+      }
     });
   }
 
@@ -146,24 +175,32 @@ export class MblFlowComponent {
     if (this.workflow.canShowMbl()) {
       if (!this.workflow.mblReview()) {
         const drafts = this.workflow.hblReviews();
+        const batchId = drafts[0]?.batch_id;
+        if (!batchId) {
+          this.toast.show('Missing batch ID. Please re-upload files.', 'error');
+          return;
+        }
+        
+        const firstPl = drafts[0]?.packing_list;
         this.workflow.setMblReview({
           draft_id: Math.random().toString(36).substring(7),
           draft_ids: drafts.map(r => r.draft_id),
           details_confirmed: true,
           mbl_details: {
             mbl_number: 'MBL-' + Math.floor(Math.random() * 1000000),
-            vessel_name: 'MSC MOCK',
-            voyage_number: '001W',
-            port_of_loading: 'Shanghai',
-            port_of_discharge: 'Los Angeles',
-            verified_gross_mass: '15000 kg',
-            carrier_booking_reference: 'BKG-123',
-            shipper: { name: 'Shipper', address: 'Address', tax_id: null },
-            consignee: { name: 'Consignee', address: 'Address', tax_id: null },
-            cargo_description: 'Mock Cargo',
-            total_packages: '100',
-            total_gross_weight: '15000 kg',
-            total_measurement: '20 CBM'
+            vessel_name: firstPl?.vessel_name || 'MSC MOCK',
+            voyage_number: firstPl?.voyage_or_flight_number || '001W',
+            port_of_loading: firstPl?.port_of_loading || 'Shanghai',
+            port_of_discharge: firstPl?.port_of_discharge || 'Los Angeles',
+            tare_weight: null,
+            verified_gross_mass: firstPl?.total_gross_weight || '15000 kg',
+            carrier_booking_reference: firstPl?.exporter_reference || 'BKG-123',
+            shipper: firstPl?.shipper_exporter || { name: 'Shipper', address: 'Address', tax_id: null },
+            consignee: firstPl?.consignee || { name: 'Consignee', address: 'Address', tax_id: null },
+            cargo_description: firstPl?.items?.[0]?.item_product_description || 'Mock Cargo',
+            total_packages: firstPl?.total_package_count || '100',
+            total_gross_weight: firstPl?.total_gross_weight || '15000 kg',
+            total_measurement: firstPl?.total_measurement || '20 CBM'
           }
         });
       }
@@ -173,17 +210,32 @@ export class MblFlowComponent {
 
   generateMbl() {
     const mblReview = this.workflow.mblReview();
-    if (mblReview) {
+    const drafts = this.workflow.hblReviews();
+    const batchId = drafts[0]?.batch_id;
+    
+    if (mblReview && batchId) {
       this.isGenerating.set(true);
       
-      this.extractionService.generateHbl(this.workflow.hblReviews()[0]).subscribe((pdfUrl: string) => {
-        this.workflow.setMblReview({
-          ...mblReview,
-          mbl_pdf: pdfUrl,
-          mbl_filename: `${mblReview.mbl_details.mbl_number}-MBL.pdf`
-        });
-        this.toast.show('MBL Generated Successfully', 'success');
-        this.isGenerating.set(false);
+      this.extractionService.generateMblBase64(mblReview.mbl_details, batchId).subscribe({
+        next: (response) => {
+          const pdfUrl = `data:application/pdf;base64,${response.base64}`;
+          this.workflow.setMblReview({
+            ...mblReview,
+            mbl_pdf: pdfUrl,
+            mbl_filename: response.filename
+          });
+          this.toast.show('MBL Generated Successfully', 'success');
+          this.isGenerating.set(false);
+        },
+        error: (error) => {
+          const errorDetail = error?.error?.detail;
+          const msg = typeof errorDetail === 'string'
+            ? errorDetail
+            : (Array.isArray(errorDetail) ? errorDetail.map((e: any) => e.msg).join(', ') : 'Failed to generate MBL. Please try again.');
+          this.toast.show(msg, 'error');
+          this.isGenerating.set(false);
+          console.error('MBL generation error:', error);
+        }
       });
     }
   }

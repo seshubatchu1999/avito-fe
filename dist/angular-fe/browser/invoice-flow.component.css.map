@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;fe1eb6551995ff16ec15b25c30ff99ab6a3f3b50c0a49588c607e8d1779e6ffe;C:/Users/VenkataSai-I/Desktop/doc_proc/frontend/avito-fe/src/app/pages/invoice-flow/invoice-flow.component.ts"],
+  "sourcesContent": ["\n    .primary-btn:disabled {\n      opacity: 0.5;\n      cursor: not-allowed;\n    }\n  "],
+  "mappings": ";AACI,CAAC,WAAW;AACV,WAAS;AACT,UAAQ;AACV;",
+  "names": []
+}

@@ -1,10 +1,12 @@
-import { Component, EventEmitter, Input, Output, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import { ReviewDraft } from '../../../../core/models/schemas';
 import { DocumentModalComponent } from '../../../../shared/components/document-modal/document-modal.component';
 import { ToastService } from '../../../../core/services/toast.service';
 import { WorkflowStateService } from '../../../../core/services/workflow-state.service';
+import { DocumentExtractionService } from '../../../../core/services/document-extraction.service';
 
 @Component({
   selector: 'app-hbl-draft',
@@ -31,10 +33,20 @@ export class HblDraftComponent {
   selectedDocMime: string = '';
   selectedPackingListIndex: number = 0;
 
-  constructor(private toast: ToastService) {}
+  hblPreviewUrl = signal<string | null>(null);
+  hblPreviewName = signal<string>('');
+  isHblPreviewLoading = signal<boolean>(false);
+
+  constructor(
+    private toast: ToastService,
+    private extractionService: DocumentExtractionService
+  ) {}
 
   ngOnInit() {
     this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
+    if (!this.formData.notify_party) {
+      this.formData.notify_party = { name: '', address: '', tax_id: null };
+    }
     this.selectedPackingListIndex = 0;
   }
 
@@ -43,6 +55,9 @@ export class HblDraftComponent {
       this.selectedPackingListIndex = 0;
       if (this.drafts.length > 0) {
         this.formData = JSON.parse(JSON.stringify(this.drafts[0]?.hbl_details || {}));
+        if (!this.formData.notify_party) {
+          this.formData.notify_party = { name: '', address: '', tax_id: null };
+        }
       } else {
         this.formData = null;
       }
@@ -66,9 +81,37 @@ export class HblDraftComponent {
     this.selectedDocUrl = null;
   }
 
+  viewHblPreview(draft: ReviewDraft) {
+    const batchId = draft.batch_id;
+    const groupId = draft.group_id;
+    if (!batchId || !groupId) {
+      this.toast.show('This HBL is missing its batch reference and cannot be previewed.', 'error');
+      return;
+    }
+
+    this.isHblPreviewLoading.set(true);
+    this.extractionService.previewHbl(batchId, groupId).pipe(
+      finalize(() => this.isHblPreviewLoading.set(false))
+    ).subscribe({
+      next: (response) => {
+        this.hblPreviewName.set(response.filename);
+        this.hblPreviewUrl.set(`data:application/pdf;base64,${response.base64}`);
+      },
+      error: () => {
+        this.toast.show('Could not build the HBL preview. Please try again.', 'error');
+      }
+    });
+  }
+
+  closeHblPreview() {
+    this.hblPreviewUrl.set(null);
+    this.hblPreviewName.set('');
+  }
+
   saveDetails(form: NgForm) {
     if (form.invalid) {
       this.drafts.forEach(d => {
+        d.details_confirmed = false;
         this.workflow.updateDraft(d.draft_id, { details_confirmed: false });
       });
       this.toast.show('Please complete all required fields.', 'error');
@@ -76,6 +119,9 @@ export class HblDraftComponent {
     }
     
     const savedData = JSON.parse(JSON.stringify(this.formData));
+    if (!savedData.notify_party) {
+      savedData.notify_party = { name: null, address: null, tax_id: null };
+    }
     const newHblNumber = savedData.hbl_number;
 
     // Validation: HBL Number must be unique across different groups
@@ -92,6 +138,9 @@ export class HblDraftComponent {
     }
 
     this.drafts.forEach(d => {
+      d.details_confirmed = true;
+      d.hbl_details = JSON.parse(JSON.stringify(savedData));
+      d.hbl_number = savedData.hbl_number || undefined;
       this.workflow.updateDraft(d.draft_id, {
         details_confirmed: true,
         hbl_details: savedData,

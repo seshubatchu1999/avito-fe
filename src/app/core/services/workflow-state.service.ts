@@ -15,6 +15,12 @@ export class WorkflowStateService {
   readonly hblReviews = signal<ReviewDraft[]>([]);
   readonly mblReview = signal<MblReview | null>(null);
   readonly groupColors = signal<{ [groupId: string]: string }>({});
+  /**
+   * Group ids the server created for the uploaded batches. Locally added groups are not in
+   * this set, which is how the grouping board tells a server group from a local one before
+   * deciding whether a move can be persisted.
+   */
+  readonly serverGroupIds = signal<Set<string>>(new Set<string>());
   readonly currentStep = signal<number>(1);
   readonly availableColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
 
@@ -76,6 +82,16 @@ export class WorkflowStateService {
     this.groupColors.set(colors);
   }
 
+  /** Merges newly returned server group ids into the known set. */
+  addServerGroupIds(groupIds: string[]) {
+    if (groupIds.length === 0) return;
+    this.serverGroupIds.update(existing => new Set([...existing, ...groupIds]));
+  }
+
+  isServerGroup(groupId: string | null): boolean {
+    return !!groupId && this.serverGroupIds().has(groupId);
+  }
+
   setMblReview(review: MblReview | null) {
     this.mblReview.set(review);
   }
@@ -98,7 +114,7 @@ export class WorkflowStateService {
     this.hblReviews.update(drafts => 
       drafts.map(d => {
         if (d.draft_id === draftId) {
-          return { ...d, group_id: groupId || `single_${Math.random().toString(36).substring(7)}` };
+          return { ...d, group_id: groupId || d.group_id };
         }
         return d;
       })
@@ -117,16 +133,7 @@ export class WorkflowStateService {
   }
 
   removeGroup(groupId: string) {
-    // Reassign drafts to ungrouped
-    this.hblReviews.update(drafts => 
-      drafts.map(d => {
-        if (d.group_id === groupId) {
-          return { ...d, group_id: `single_${Math.random().toString(36).substring(7)}` };
-        }
-        return d;
-      })
-    );
-    // Remove group color
+    // Remove group color so drafts become ungrouped
     this.groupColors.update(colors => {
       const newColors = { ...colors };
       delete newColors[groupId];
@@ -139,7 +146,6 @@ export class WorkflowStateService {
     this.hblReviews.update(drafts => 
       drafts.map(draft => ({
         ...draft,
-        group_id: `single_${Math.random().toString(36).substring(7)}`,
         details_confirmed: false,
         hbl_details: {
           hbl_number: null,
@@ -162,6 +168,7 @@ export class WorkflowStateService {
     this.mblReview.set(null);
     this.currentStep.set(1);
     this.groupColors.set({});
+    this.serverGroupIds.set(new Set<string>());
   }
 
   isGroupSaved(groupId: string | null): boolean {

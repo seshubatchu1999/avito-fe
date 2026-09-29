@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "sources": [
+    "src/app/core/services/toast.service.ts"
+  ],
+  "sourcesContent": [
+    "import { Injectable, signal } from '@angular/core';\r\n\r\nexport interface Toast {\r\n  id: number;\r\n  message: string;\r\n  type: 'success' | 'error' | 'info';\r\n}\r\n\r\n@Injectable({\r\n  providedIn: 'root'\r\n})\r\nexport class ToastService {\r\n  public toasts = signal<Toast[]>([]);\r\n  private idCounter = 0;\r\n\r\n  show(message: string, type: 'success' | 'error' | 'info' = 'info') {\r\n    const id = this.idCounter++;\r\n    const toast: Toast = { id, message, type };\r\n    this.toasts.update(t => [...t, toast]);\r\n\r\n    setTimeout(() => {\r\n      this.remove(id);\r\n    }, 3000);\r\n  }\r\n\r\n  remove(id: number) {\r\n    this.toasts.update(t => t.filter(toast => toast.id !== id));\r\n  }\r\n}\r\n\r\n"
+  ],
+  "mappings": ";;;;;;;;AAWM,IAAO,eAAP,MAAO,cAAY;EAChB,SAAS;IAAgB,CAAA;;;;;;EACxB,YAAY;EAEpB,KAAK,SAAiB,OAAqC,QAAM;AAC/D,UAAM,KAAK,KAAK;AAChB,UAAM,QAAe,EAAE,IAAI,SAAS,KAAI;AACxC,SAAK,OAAO,OAAO,OAAK,CAAC,GAAG,GAAG,KAAK,CAAC;AAErC,eAAW,MAAK;AACd,WAAK,OAAO,EAAE;IAChB,GAAG,GAAI;EACT;EAEA,OAAO,IAAU;AACf,SAAK,OAAO,OAAO,OAAK,EAAE,OAAO,WAAS,MAAM,OAAO,EAAE,CAAC;EAC5D;;qCAhBW,eAAY;EAAA;4EAAZ,eAAY,SAAZ,cAAY,WAAA,YAFX,OAAM,CAAA;;;sEAEP,cAAY,CAAA;UAHxB;WAAW;MACV,YAAY;KACb;;;",
+  "names": [],
+  "debugId": "1e95bcc1-0772-5a01-b769-825579db7ab3"
+}

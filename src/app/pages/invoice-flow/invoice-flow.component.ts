@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { UploaderComponent } from '../../features/logistics/components/uploader/uploader.component';
 import { WifiLoaderComponent } from '../../shared/components/wifi-loader/wifi-loader.component';
+import { DocumentExtractionService } from '../../core/services/document-extraction.service';
+import { BatchExtractionResponse, PackingList, PackingListItem } from '../../core/models/schemas';
 
 interface ExtractedInvoice {
   name: string;
@@ -99,8 +101,12 @@ export class InvoiceFlowComponent {
   isProcessing = signal<boolean>(false);
   hasProcessed = signal<boolean>(false);
   extractedInvoices = signal<ExtractedInvoice[]>([]);
+  batchId = signal<string | null>(null);
 
-  constructor(private toast: ToastService) {}
+  constructor(
+    private toast: ToastService,
+    private extractionService: DocumentExtractionService
+  ) {}
 
   onFilesSelected(files: File[]) {
     this.selectedFiles.set(files);
@@ -109,55 +115,97 @@ export class InvoiceFlowComponent {
 
   processInvoices() {
     if (this.selectedFiles().length === 0) return;
-    
+
     this.isProcessing.set(true);
 
-    // Simulate processing
-    setTimeout(() => {
-      const mockResults = this.selectedFiles().map((file, idx) => ({
-        name: file.name,
-        date: new Date().toLocaleDateString(),
-        amount: Math.floor(Math.random() * 5000) + 100,
-        vendor: ['Acme Corp', 'Global Logistics', 'FastShip Inc'][idx % 3],
-        tax: Math.floor(Math.random() * 500)
-      }));
-     
-      this.extractedInvoices.set(mockResults);
-      this.isProcessing.set(false);
-      this.hasProcessed.set(true);
-      this.toast.show('Invoices processed successfully', 'success');
-    }, 2500);
+    this.extractionService.uploadFiles(this.selectedFiles()).subscribe({
+      next: (response: BatchExtractionResponse) => {
+        this.batchId.set(response.batch_id);
+        this.extractedInvoices.set(
+          response.documents.map((document) => this.toInvoiceRow(document.extraction, document.filename))
+        );
+        this.isProcessing.set(false);
+        this.hasProcessed.set(true);
+        this.toast.show('Invoices processed successfully', 'success');
+      },
+      error: (error) => {
+        this.isProcessing.set(false);
+        const errorDetail = error?.error?.detail;
+        const msg = typeof errorDetail === 'string'
+          ? errorDetail
+          : (Array.isArray(errorDetail) ? errorDetail.map((e: any) => e.msg).join(', ') : 'Failed to extract data from files. Please try again.');
+        this.toast.show(msg, 'error');
+        console.error('Invoice extraction error:', error);
+      }
+    });
   }
 
   downloadSpreadsheet() {
-    const invoices = this.extractedInvoices();
-    if (invoices.length === 0) return;
+    const batchId = this.batchId();
+    if (!batchId) return;
 
-    // Create a simple CSV
-    const headers = ['File Name', 'Invoice Date', 'Amount', 'Vendor', 'Tax'];
-    const rows = invoices.map(i => [i.name, i.date, i.amount, i['vendor'], i['tax']]);
-    
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'extracted_invoices.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    this.extractionService.downloadInvoiceSheet(batchId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'invoice-sheets.xlsx';
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        const errorDetail = error?.error?.detail;
+        const msg = typeof errorDetail === 'string'
+          ? errorDetail
+          : (Array.isArray(errorDetail) ? errorDetail.map((e: any) => e.msg).join(', ') : 'Failed to generate the spreadsheet. Please try again.');
+        this.toast.show(msg, 'error');
+        console.error('Invoice sheet error:', error);
+      }
+    });
   }
 
   reset() {
     this.selectedFiles.set([]);
     this.hasProcessed.set(false);
     this.extractedInvoices.set([]);
+    this.batchId.set(null);
+  }
+
+  private toInvoiceRow(extraction: PackingList, filename: string): ExtractedInvoice {
+    const items: PackingListItem[] = extraction?.items ?? [];
+    return {
+      name: filename,
+      date: extraction?.invoice_date || extraction?.date_of_issue || extraction?.packing_list_date || '-',
+      amount: this.totalAmount(items),
+      invoice_number: extraction?.invoice_number || '',
+      issued_to: extraction?.buyer?.name || extraction?.consignee?.name || ''
+    };
+  }
+
+  /** Sums the printed line amounts only when every one of them is a parsable number. */
+  private totalAmount(items: PackingListItem[]): number {
+    const printed = items
+      .map((item) => (typeof item?.amount === 'string' ? item.amount.trim() : ''))
+      .filter((value) => value.length > 0);
+
+    if (printed.length === 0) return 0;
+
+    const parsed = printed.map((value) => this.parseAmount(value));
+    if (parsed.some((value) => value === null)) return 0;
+    return (parsed as number[]).reduce((sum, value) => sum + value, 0);
+  }
+
+  private parseAmount(value: string): number | null {
+    const match = value.replace(/[\s ]/g, '').match(/[+-]?[\d.,]+/);
+    if (!match) return null;
+    const raw = match[0];
+    const normalized = /\d[.,]\d{1,2}$/.test(raw)
+      ? raw.replace(/[.,](?=\D*$)/, '.').replace(/[.,](?=\D)/g, '')
+      : raw.replace(/[.,]/g, '');
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }
-

@@ -22,6 +22,8 @@ export interface PackingListItem {
   index_number: string | null;
   hsn_code: string | null;
   quantity: string | null;
+  rate: string | null;
+  amount: string | null;
   unit_of_measure: string | null;
   package_count: string | null;
   package_type: string | null;
@@ -96,6 +98,7 @@ export interface MblManualDetails {
   voyage_number: string | null;
   port_of_loading: string | null;
   port_of_discharge: string | null;
+  tare_weight: string | null;
   verified_gross_mass: string | null;
   carrier_booking_reference: string | null;
   shipper: Party;
@@ -112,6 +115,8 @@ export interface ReviewDraft {
   source_document: string; // base64 or buffer
   mime_type: string;
   group_id?: string;
+  batch_id?: string;
+  document_id?: string;
   packing_list: PackingList;
   hbl_details: HblManualDetails;
   details_confirmed: boolean;
@@ -128,4 +133,41 @@ export interface MblReview {
   mbl_pdf?: string;
   mbl_filename?: string;
   mbl_number?: string;
+}
+
+export interface ExtractedDocument {
+  document_id: string;
+  filename: string;
+  mime_type: string;
+  extraction: PackingList;
+}
+
+export interface HblGroup {
+  group_id: string;
+  document_ids: string[];
+  same_shipper_and_consignee: boolean;
+  hbl_action: 'create_combined_hbl' | 'create_separate_hbl';
+  reason: string;
+  combined_extraction: PackingList;
+}
+
+export interface BatchExtractionResponse {
+  batch_id: string;
+  documents: ExtractedDocument[];
+  hbl_groups: HblGroup[];
+}
+
+export interface HblGenerationRequest {
+  batch_id: string;
+  group_id: string;
+  manual_details: HblManualDetails;
+}
+
+export interface MblGenerationRequest {
+  batch_id: string;
+  manual_details: MblManualDetails;
+}
+
+export interface InvoiceSheetRequest {
+  batch_id: string;
 }

@@ -49,7 +49,7 @@
         <!-- Dynamic HBL Forms per Group -->
         @if (workflow.groupedSelectedDrafts().length > 0) {
           <div>
-            @for (group of workflow.groupedSelectedDrafts(); track group.groupId; let gIdx = $index) {
+            @for (group of workflow.groupedSelectedDrafts(); track (group.groupId || '') + '_' + (group.drafts[0]?.draft_id || gIdx); let gIdx = $index) {
               <app-hbl-draft 
                 [drafts]="group.drafts"
                 [groupColor]="group.color"

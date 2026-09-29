@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/features/logistics/components/uploader/uploader.component.css"],
+  "sourcesContent": [".file-input-hidden { display: none; }\r\n.icon-md { width: 20px; height: 20px; }\r\n.icon-sm { width: 16px; height: 16px; }\r\n.uploader-title { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }\r\n.uploader-subtitle { font-size: 13px; color: #64748b; margin-bottom: 4px; }\r\n.uploader-hint { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }\r\n.btn-with-icon span { display: flex; align-items: center; justify-content: center; gap: 4px; }\r\n.file-row { display: flex; align-items: center; width: 100%; }\r\n.extract-action-row { display: flex; justify-content: flex-end; margin-top: 12px; }\r\n.file-list-container { max-height: 200px; overflow-y: auto; padding-right: 8px; }"],
+  "mappings": ";AAAA,CAAC;AAAoB,WAAS;AAAM;AACpC,CAAC;AAAU,SAAO;AAAM,UAAQ;AAAM;AACtC,CAAC;AAAU,SAAO;AAAM,UAAQ;AAAM;AACtC,CAAC;AAAiB,aAAW;AAAM,eAAa;AAAK,SAAO;AAAS,iBAAe;AAAK;AACzF,CAAC;AAAoB,aAAW;AAAM,SAAO;AAAS,iBAAe;AAAK;AAC1E,CAAC;AAAgB,aAAW;AAAM,SAAO;AAAS,iBAAe;AAAM;AACvE,CAAC,cAAc;AAAO,WAAS;AAAM,eAAa;AAAQ,mBAAiB;AAAQ,OAAK;AAAK;AAC7F,CAAC;AAAW,WAAS;AAAM,eAAa;AAAQ,SAAO;AAAM;AAC7D,CAAC;AAAqB,WAAS;AAAM,mBAAiB;AAAU,cAAY;AAAM;AAClF,CAAC;AAAsB,cAAY;AAAO,cAAY;AAAM,iBAAe;AAAK;",
+  "names": []
+}
