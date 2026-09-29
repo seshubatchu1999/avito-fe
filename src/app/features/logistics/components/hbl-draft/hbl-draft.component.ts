@@ -154,7 +154,32 @@ export class HblDraftComponent {
   }
 
   getItems(): any[] {
+    if (!this.primaryDraft) return [];
+    
     let items = [...(this.primaryDraft?.packing_list?.items || [])];
+    
+    if (this.primaryDraft.group_id) {
+      const currentDocIds = [...this.drafts.map(d => d.document_id || d.draft_id)].sort();
+      const originalGroup = (MOCK_EXTRACTION_RESPONSE as any).hbl_groups?.find((g: any) => g.group_id === this.primaryDraft.group_id);
+      
+      let isChanged = true;
+      if (originalGroup) {
+        const originalDocIds = [...originalGroup.document_ids].sort();
+        isChanged = JSON.stringify(currentDocIds) !== JSON.stringify(originalDocIds);
+      }
+      
+      if (isChanged) {
+        const reassignedGroup = REASSIGN_MOCK_EXTRACTION_RESPONSE.hbl_groups.find((g: any) => g.group_id === this.primaryDraft.group_id);
+        if (reassignedGroup && reassignedGroup.combined_extraction?.items) {
+          items = [...reassignedGroup.combined_extraction.items];
+        }
+      } else {
+        if (originalGroup && originalGroup.combined_extraction?.items) {
+          items = [...originalGroup.combined_extraction.items];
+        }
+      }
+    }
+
     if (this.itemsSortColumn) {
       items.sort((a, b) => {
         let valA = String((a as any)[this.itemsSortColumn] || 0).toLowerCase();
