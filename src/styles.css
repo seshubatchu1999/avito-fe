@@ -397,3 +397,5 @@ h1, h2, h3, h4 {
 .input-group { display: flex; align-items: stretch; }
 .input-group-text { display: flex; align-items: center; padding: 0 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-right: none; border-radius: 6px 0 0 6px; color: #64748b; font-weight: 500; font-size: 14px; }
 .group-input { border-radius: 0 6px 6px 0 !important; }
+
+.btn-outline:disabled { opacity: 0.5; cursor: not-allowed; background-color: #f1f5f9; border-color: #e2e8f0; }

@@ -1,11 +1,13 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, delay, of, map } from 'rxjs';
 import { PackingList, Party, ReviewDraft } from '../models/schemas';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentExtractionService {
+  private http = inject(HttpClient);
   
   extractPackingList(file: File): Observable<PackingList> {
     const mockPackingList: PackingList = {
@@ -40,8 +42,4 @@ export class DocumentExtractionService {
     return of(mockPackingList).pipe(delay(2500));
   }
 
-  generateHbl(draft: ReviewDraft): Observable<string> {
-    const blankPdf = 'data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA1OTUuMjggODQxLjg5XQo+PgplbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjIxMwolJUVPRgo=';
-    return of(blankPdf).pipe(delay(1000));
-  }
 }

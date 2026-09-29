@@ -77,31 +77,34 @@ export class MblFlowComponent {
       let currentColors = { ...this.workflow.groupColors() };
       const currentDrafts = [...this.workflow.hblReviews()];
 
-      Object.keys(response).forEach(groupId => {
-        const groupItems = response[groupId];
-        if (!isSubsequentUpload && groupItems.length > 1) {
-          if (!currentColors[groupId]) {
-             const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
-             currentColors[groupId] = this.workflow.availableColors[colorIndex];
-          }
+      if (response.batch_id) {
+        this.workflow.setBatchId(response.batch_id);
+      }
+      response.hbl_groups.forEach((group: any) => {
+        const groupId = group.group_id;
+        if (!currentColors[groupId]) {
+           const colorIndex = Object.keys(currentColors).length % this.workflow.availableColors.length;
+           currentColors[groupId] = this.workflow.availableColors[colorIndex];
         }
-        
-        groupItems.forEach((item: any) => {
-          const file = newFiles.find(f => f.name === item.file_name);
+
+        group.document_ids.forEach((docId: string) => {
+          const doc = response.documents.find((d: any) => d.document_id === docId);
+          if (!doc) return;
+
+          let file = newFiles.find(f => f.name === doc.filename);
+          if (!file) {
+             file = newFiles[currentDrafts.length % newFiles.length];
+          }
           if (!file) return;
 
-          let finalGroupId = groupId;
-          if (isSubsequentUpload || groupItems.length === 1) {
-            finalGroupId = 'single_' + Math.random().toString(36).substring(7);
-          }
-
-          const packingList = item.packing_list;
+          const packingList = doc.extraction;
           const newDraft: ReviewDraft = {
             draft_id: Math.random().toString(36).substring(7),
-            source_name: file.name,
+            document_id: doc.document_id,
+            source_name: doc.filename,
             source_document: URL.createObjectURL(file),
-            mime_type: file.type || 'application/pdf',
-            group_id: finalGroupId,
+            mime_type: doc.mime_type || 'application/pdf',
+            group_id: groupId,
             packing_list: packingList,
             details_confirmed: false,
             hbl_details: {
@@ -128,11 +131,18 @@ export class MblFlowComponent {
   generateHbl(drafts: ReviewDraft[]) {
     this.isGenerating.set(true);
     
-    this.extractionService.generateHbl(drafts[0]).subscribe((pdfUrl: string) => {
+    const freshDraft = this.workflow.hblReviews().find(d => d.draft_id === drafts[0].draft_id) || drafts[0];
+    const payload = {
+      batch_id: this.workflow.batchId(),
+      group_id: freshDraft.group_id,
+      manual_details: freshDraft.hbl_details
+    };
+
+    this.backendService.generateHbl(payload).subscribe((result) => {
       drafts.forEach(draft => {
         this.workflow.updateDraft(draft.draft_id, {
-          hbl_pdf: pdfUrl,
-          hbl_filename: `Merged-${drafts[0].hbl_number}-HBL.pdf`
+          hbl_pdf: result.pdfBase64,
+          hbl_filename: result.filename || `Merged-${drafts[0].hbl_details.hbl_number || 'draft'}-HBL.pdf`
         });
       });
       
@@ -176,11 +186,11 @@ export class MblFlowComponent {
     if (mblReview) {
       this.isGenerating.set(true);
       
-      this.extractionService.generateHbl(this.workflow.hblReviews()[0]).subscribe((pdfUrl: string) => {
+      this.backendService.generateMbl(mblReview).subscribe((result) => {
         this.workflow.setMblReview({
           ...mblReview,
-          mbl_pdf: pdfUrl,
-          mbl_filename: `${mblReview.mbl_details.mbl_number}-MBL.pdf`
+          mbl_pdf: result.pdfBase64,
+          mbl_filename: result.filename || `${mblReview.mbl_details.mbl_number}-MBL.pdf`
         });
         this.toast.show('MBL Generated Successfully', 'success');
         this.isGenerating.set(false);
