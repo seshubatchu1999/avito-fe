@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ToastService } from '../../../../core/services/toast.service';
@@ -11,6 +11,7 @@ import { ToastService } from '../../../../core/services/toast.service';
   styleUrls: ['./uploader.component.css'],
 })
 export class UploaderComponent {
+  @Input() buttonText: string = 'Extract Packing Lists';
   @Output() filesSelected = new EventEmitter<File[]>();
   isDragging = false;
   selectedFiles: File[] = [];
