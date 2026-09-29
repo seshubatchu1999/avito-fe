@@ -27,10 +27,19 @@ export class GroupingBoardComponent {
       // since hblReviews is a flat array. We will just ignore intra-group reordering for now.
     } else {
       const movedDraft = event.previousContainer.data[event.previousIndex];
+      const sourceGroupId = movedDraft.group_id || null;
       // Check if dragging out of a saved group
-      if (this.workflow.isGroupSaved(movedDraft.group_id || null)) return;
+      if (this.workflow.isGroupSaved(sourceGroupId)) return;
       
       this.workflow.moveDraftToGroup(movedDraft.draft_id, targetGroupId);
+
+      // Auto-remove empty groups
+      if (sourceGroupId && sourceGroupId !== targetGroupId) {
+        const remainingDrafts = this.workflow.enrichedHblReviews().filter(d => d.group_id === sourceGroupId);
+        if (remainingDrafts.length === 0) {
+          this.workflow.removeGroup(sourceGroupId);
+        }
+      }
     }
   }
 
