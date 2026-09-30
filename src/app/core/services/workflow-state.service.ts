@@ -84,6 +84,10 @@ export class WorkflowStateService {
     this.currentStep.set(step);
   }
 
+  getGroupIndex(groupId: string): number {
+    return Object.keys(this.groupColors()).indexOf(groupId);
+  }
+
   updateDraft(draftId: string, changes: Partial<ReviewDraft>) {
     this.hblReviews.update(drafts => 
       drafts.map(d => d.draft_id === draftId ? { ...d, ...changes } : d)
