@@ -7,8 +7,8 @@ import {
   HblManualDetails, 
   MblManualDetails,
   ExtractedDocument,
-  HblGroup,
   BatchExtractionResponse,
+  ReassignDocumentsResponse,
   HblGenerationRequest,
   MblGenerationRequest
 } from '../models/schemas';
@@ -64,8 +64,8 @@ export class BackendApiService {
     return this.http.post<{ filename: string; base64: string }>(`${this.apiUrl}/v1/mbl/preview`, { batch_id: batchId });
   }
 
-  reassignDocuments(batchId: string, sourceGroupId: string, targetGroupId: string, documentIds: string[]): Observable<HblGroup[]> {
-    return this.http.post<HblGroup[]>(`${this.apiUrl}/v1/hbl-groups/reassign`, {
+  reassignDocuments(batchId: string, sourceGroupId: string, targetGroupId: string, documentIds: string[]): Observable<ReassignDocumentsResponse> {
+    return this.http.post<ReassignDocumentsResponse>(`${this.apiUrl}/v1/hbl-groups/reassign`, {
       batch_id: batchId,
       source_group_id: sourceGroupId,
       target_group_id: targetGroupId,

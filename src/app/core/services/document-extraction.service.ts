@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BatchExtractionResponse, PackingList, ReviewDraft, HblManualDetails, MblManualDetails, HblGroup } from '../models/schemas';
+import { BatchExtractionResponse, PackingList, ReviewDraft, HblManualDetails, MblManualDetails, ReassignDocumentsResponse } from '../models/schemas';
 import { BackendApiService } from './backend-api.service';
 
 @Injectable({
@@ -71,7 +71,7 @@ export class DocumentExtractionService {
     sourceGroupId: string,
     targetGroupId: string,
     documentIds: string[]
-  ): Observable<HblGroup[]> {
+  ): Observable<ReassignDocumentsResponse> {
     return this.backendApi.reassignDocuments(batchId, sourceGroupId, targetGroupId, documentIds);
   }
 }

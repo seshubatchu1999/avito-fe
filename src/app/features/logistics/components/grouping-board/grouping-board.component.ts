@@ -52,7 +52,9 @@ export class GroupingBoardComponent {
     if (sourceGroupId && targetGroupId && batchId && documentId
         && this.workflow.isServerGroup(sourceGroupId) && this.workflow.isServerGroup(targetGroupId)) {
       this.extractionService.reassignDocuments(batchId, sourceGroupId, targetGroupId, [documentId]).subscribe({
-        next: () => {},
+        next: (response) => {
+          this.workflow.applyReassignedGroups(response.hbl_groups);
+        },
         error: () => {
           this.toast.show('Could not update the shipment groups on the server. Please try again.', 'error');
         }

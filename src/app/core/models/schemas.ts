@@ -157,6 +157,11 @@ export interface BatchExtractionResponse {
   hbl_groups: HblGroup[];
 }
 
+export interface ReassignDocumentsResponse {
+  batch_id: string;
+  hbl_groups: HblGroup[];
+}
+
 export interface HblGenerationRequest {
   batch_id: string;
   group_id: string;

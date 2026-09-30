@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { ReviewDraft, MblReview } from '../models/schemas';
+import { ReviewDraft, MblReview, HblGroup } from '../models/schemas';
 
 export interface GroupedDrafts {
   groupId: string | null;
@@ -117,6 +117,25 @@ export class WorkflowStateService {
           return { ...d, group_id: groupId || d.group_id };
         }
         return d;
+      })
+    );
+  }
+
+  /**
+   * Syncs the group drafts with the server's recomputed data after a document was moved
+   * between HBL groups. Each draft in a group gets the group's combined extraction so the
+   * HBL review panel shows every file in the group, not just the first one.
+   */
+  applyReassignedGroups(groups: HblGroup[]) {
+    if (!groups || groups.length === 0) return;
+    this.hblReviews.update(drafts =>
+      drafts.map(d => {
+        const group = groups.find(g => g.document_ids.includes(d.document_id || ''));
+        if (!group) return d;
+        return {
+          ...d,
+          packing_list: JSON.parse(JSON.stringify(group.combined_extraction))
+        };
       })
     );
   }
